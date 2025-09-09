@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Stadium Weather Factors</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-weight: 300;
+        }
+
+        .date-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .date-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .date-nav-btn {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .date-nav-btn:hover {
+            background: #2a5298;
+        }
+
+        .current-date {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .weather-summary {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .last-updated {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-links a {
+            color: #87CEEB;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        .view-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .view-buttons button {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .view-buttons button.active {
+            background: #2a5298;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.25);
+        }
+
+        .view-buttons button:hover {
+            background: #2a5298;
+            transform: translateY(-1px);
+        }
+
+        .effect-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .effect-buttons button {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .effect-buttons button.active {
+            background: #2a5298;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.25);
+        }
+
+        .games-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .games-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .games-table thead {
+            background: #1e3c72;
+            color: white;
+        }
+
+        .games-table th {
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .games-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+        }
+
+        .games-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .games-table tbody tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .game-cell {
+            text-align: left !important;
+            min-width: 200px;
+            background: #f8f9fa !important;
+        }
+
+        .stadium-name {
+            font-weight: 600;
+            color: #1e3c72;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .game-details {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .weather-info {
+            font-size: 0.75rem;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dome-indicator {
+            background: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .factor-positive {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .factor-negative {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .factor-neutral {
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px;
+            border: 1px solid #f5c6cb;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .games-table {
+                font-size: 0.8rem;
+            }
+            
+            .games-table th,
+            .games-table td {
+                padding: 8px 5px;
+            }
+            
+            .game-cell {
+                min-width: 150px;
+            }
+            
+            .view-buttons,
+            .effect-buttons {
+                gap: 5px;
+            }
+            
+            .view-buttons button,
+            .effect-buttons button {
+                font-size: 0.8rem;
+                padding: 8px 15px;
+            }
+
+            .date-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NFL Stadium Weather Factors</h1>
+        </div>
+
+        <div class="date-nav">
+            <div class="date-header">
+                <button class="date-nav-btn">&lt;&lt; 9/08</button>
+                <div class="current-date">September 9, 2025</div>
+                <button class="date-nav-btn">9/10 &gt;&gt;</button>
+            </div>
+            <div class="weather-summary" id="weather-summary">
+                Loading weather conditions for NFL stadiums...
+            </div>
+            <div class="last-updated" id="last-updated"></div>
+        </div>
+
+        <div class="nav-links">
+            <a href="#" style="color: white;">Weather Impact Guide</a>
+            <span style="color: white;">—</span>
+            <a href="#" style="color: white;">NFL Stadium Factors</a>
+        </div>
+
+        <div class="view-buttons">
+            <button class="active" onclick="changeView('percentage')">Model %</button>
+            <button onclick="changeView('model')">Model #</button>
+            <button onclick="changeView('weather')">Weather Details</button>
+            <button onclick="changeView('dome')">Indoor vs Outdoor</button>
+        </div>
+
+        <div class="effect-buttons">
+            <button class="active" onclick="changeEffect('combined')">Weather Adjusted</button>
+            <button onclick="changeEffect('stadium')">Base Factors Only</button>
+            <button onclick="changeEffect('weather')">Weather Impact Only</button>
+        </div>
+
+        <div class="games-container">
+            <table class="games-table">
+                <thead>
+                    <tr>
+                        <th>Stadium</th>
+                        <th>Passing</th>
+                        <th>Rushing</th>
+                        <th>Kicking</th>
+                        <th>Weather</th>
+                    </tr>
+                </thead>
+                <tbody id="stadiums-tbody">
+                    <tr>
+                        <td colspan="5" class="loading">Loading NFL stadium factors data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let currentView = 'percentage';
+        let currentEffect = 'combined';
+        let stadiumFactorsData = null;
+
+        // NFL team matchups (simulated for each stadium)
+        const stadiumTeams = {
+            "Lambeau Field": { home: "GB", away: "CHI" },
+            "Soldier Field": { home: "CHI", away: "GB" },
+            "Cleveland Browns Stadium": { home: "CLE", away: "PIT" },
+            "Heinz Field": { home: "PIT", away: "BAL" },
+            "M&T Bank Stadium": { home: "BAL", away: "CIN" },
+            "MetLife Stadium": { home: "NYG", away: "WAS" },
+            "Gillette Stadium": { home: "NE", away: "BUF" },
+            "Hard Rock Stadium": { home: "MIA", away: "NYJ" },
+            "TIAA Bank Field": { home: "JAX", away: "TEN" },
+            "Nissan Stadium": { home: "TEN", away: "HOU" },
+            "NRG Stadium": { home: "HOU", away: "IND" },
+            "Lucas Oil Stadium": { home: "IND", away: "JAX" },
+            "Arrowhead Stadium": { home: "KC", away: "DEN" },
+            "Empower Field": { home: "DEN", away: "LV" },
+            "Allegiant Stadium": { home: "LV", away: "LAC" },
+            "SoFi Stadium": { home: "LAR", away: "SF" },
+            "Levi's Stadium": { home: "SF", away: "SEA" },
+            "Lumen Field": { home: "SEA", away: "ARI" },
+            "State Farm Stadium": { home: "ARI", away: "LAR" },
+            "AT&T Stadium": { home: "DAL", away: "PHI" },
+            "FedExField": { home: "WAS", away: "NYG" },
+            "Lincoln Financial Field": { home: "PHI", away: "DAL" },
+            "U.S. Bank Stadium": { home: "MIN", away: "DET" },
+            "Ford Field": { home: "DET", away: "MIN" },
+            "Mercedes-Benz Superdome": { home: "NO", away: "ATL" },
+            "Bank of America Stadium": { home: "CAR", away: "TB" },
+            "Mercedes-Benz Stadium": { home: "ATL", away: "NO" },
+            "Raymond James Stadium": { home: "TB", away: "CAR" }
+        };
+
+        async function loadStadiumFactors() {
+            console.log('Loading stadium factors...');
+            try {
+                const response = await fetch('/.netlify/functions/stadium-factors');
+                console.log('API response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('API data received:', data);
+                
+                stadiumFactorsData = data;
+                updateLastUpdated();
+                updateWeatherSummary();
+                renderTable();
+                
+            } catch (error) {
+                console.error('Error loading stadium factors:', error);
+                document.getElementById('stadiums-tbody').innerHTML = `
+                    <tr><td colspan="5" class="error">Unable to load stadium factors data: ${error.message}</td></tr>
+                `;
+            }
+        }
+
+        function updateLastUpdated() {
+            if (stadiumFactorsData && stadiumFactorsData.last_updated) {
+                const date = new Date(stadiumFactorsData.last_updated);
+                const timeString = date.toLocaleTimeString();
+                document.getElementById('last-updated').textContent = `Last Updated: ${timeString}`;
+            }
+        }
+
+        function updateWeatherSummary() {
+            if (stadiumFactorsData && stadiumFactorsData.stadium_factors) {
+                const outdoorStadiums = stadiumFactorsData.stadium_factors.filter(s => !s.is_dome);
+                const domeStadiums = stadiumFactorsData.stadium_factors.filter(s => s.is_dome);
+                
+                document.getElementById('weather-summary').textContent = 
+                    `Weather conditions tracked for ${outdoorStadiums.length} outdoor stadiums. ${domeStadiums.length} indoor stadiums unaffected by weather.`;
+            }
+        }
+
+        function renderTable() {
+            console.log('Rendering table...');
+            
+            if (!stadiumFactorsData || !stadiumFactorsData.stadium_factors) {
+                console.error('No stadium factors data available');
+                return;
+            }
+
+            const tbody = document.getElementById('stadiums-tbody');
+            tbody.innerHTML = '';
+
+            stadiumFactorsData.stadium_factors.forEach((factor, index) => {
+                const teams = stadiumTeams[factor.stadium] || { home: "HOME", away: "AWAY" };
+                const gameTime = `1:${(index % 4) * 15 || '00'} PM`;
+                
+                const row = document.createElement('tr');
+                
+                let passingDisplay, rushingDisplay, kickingDisplay;
+                
+                if (currentEffect === 'combined') {
+                    if (currentView === 'percentage') {
+                        passingDisplay = formatAsPercentage(factor.passing_factor);
+                        rushingDisplay = formatAsPercentage(factor.rushing_factor);
+                        kickingDisplay = formatAsPercentage(factor.kicking_factor);
+                    } else {
+                        passingDisplay = factor.passing_factor.toFixed(2);
+                        rushingDisplay = factor.rushing_factor.toFixed(2);
+                        kickingDisplay = factor.kicking_factor.toFixed(2);
+                    }
+                } else if (currentEffect === 'stadium') {
+                    if (currentView === 'percentage') {
+                        passingDisplay = formatAsPercentage(factor.base_
