@@ -3,869 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFL Stadium Weather Factors</title>
+    <title>NFL Stadium Weather Table</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #234889;
+            color: #222;
+            padding: 15px;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
+        #main-title {
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
+            color: #f2f2f2;
+            margin-bottom: 24px;
         }
-
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            font-weight: 300;
-        }
-
-        .date-nav {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+        #nav {
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 14px;
         }
-
-        .date-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 15px;
+        #nav a {
+            color: #e2e8f0;
+            margin: 0 10px;
+            font-size: 0.95rem;
         }
-
-        .date-nav-btn {
-            background: #1e3c72;
-            color: white;
+        .date-bar {
+            background: #fafbfc;
+            padding: 12px;
+            border-radius: 9px;
+            box-shadow: 0 2px 5px #aaa7;
+        }
+        .view-btn, .effect-btn {
+            background: #234889;
+            color: #f1f1f1;
             border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 12px;
+            padding: 9px 15px;
+            margin: 6px 4px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem;
         }
-
-        .date-nav-btn:hover {
-            background: #2a5298;
+        .view-btn.active, .effect-btn.active {
+            background: #1f3556;
+            border: 1px solid #aaa;
         }
-
-        .current-date {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #333;
+        .games-area, .teams-area {
+            background: #fff;
+            border-radius: 7px;
+            box-shadow: 0 1px 4px #9999;
+            margin-top: 20px;
         }
-
-        .weather-summary {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        .last-updated {
-            font-size: 0.8rem;
-            color: #999;
-        }
-
-        .nav-links {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .nav-links a {
-            color: #87CEEB;
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 0.9rem;
-        }
-
-        .nav-links a:hover {
-            text-decoration: underline;
-        }
-
-        .view-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .view-buttons button {
-            background: #1e3c72;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .view-buttons button.active {
-            background: #2a5298;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.25);
-        }
-
-        .view-buttons button:hover {
-            background: #2a5298;
-            transform: translateY(-1px);
-        }
-
-        .effect-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .effect-buttons button {
-            background: #1e3c72;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .effect-buttons button.active {
-            background: #2a5298;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.25);
-        }
-
-        .games-container {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .games-table {
+        table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.97rem;
         }
-
-        .games-table thead {
-            background: #1e3c72;
-            color: white;
-        }
-
-        .games-table th {
-            padding: 15px 10px;
+        th, td {
+            padding: 10px 6px;
             text-align: center;
-            font-weight: 600;
-            font-size: 1rem;
+            border-bottom: 1px solid #d3d3d3;
         }
-
-        .games-table td {
-            padding: 12px 10px;
-            text-align: center;
-            border-bottom: 1px solid #e9ecef;
-            font-size: 0.9rem;
+        th {
+            background: #3569b3;
+            color: #fff;
         }
-
-        .games-table tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
+        .gamecell {
+            min-width: 180px;
+            text-align: left;
         }
-
-        .games-table tbody tr:hover {
-            background-color: #e3f2fd;
-        }
-
-        .game-cell {
-            text-align: left !important;
-            min-width: 200px;
-            background: #f8f9fa !important;
-        }
-
-        .stadium-name {
-            font-weight: 600;
-            color: #1e3c72;
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
-
-        .game-details {
-            font-size: 0.8rem;
-            color: #666;
-            margin-bottom: 2px;
-        }
-
-        .weather-info {
-            font-size: 0.75rem;
-            color: #999;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .dome-indicator {
-            background: #28a745;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .factor-positive {
-            color: #28a745;
-            font-weight: 600;
-        }
-
-        .factor-negative {
-            color: #dc3545;
-            font-weight: 600;
-        }
-
-        .factor-neutral {
-            color: #6c757d;
-            font-weight: 600;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #666;
-            font-size: 1.1rem;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px;
-            border: 1px solid #f5c6cb;
-            text-align: center;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .games-table {
-                font-size: 0.8rem;
-            }
-            
-            .games-table th,
-            .games-table td {
-                padding: 8px 5px;
-            }
-            
-            .game-cell {
-                min-width: 150px;
-            }
-            
-            .view-buttons,
-            .effect-buttons {
-                gap: 5px;
-            }
-            
-            .view-buttons button,
-            .effect-buttons button {
-                font-size: 0.8rem;
-                padding: 8px 15px;
-            }
-
-            .date-header {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .factor-plus { color: #217624; font-weight: bold; }
+        .factor-minus { color: #b22d2d; font-weight: bold; }
+        .factor-flat { color: #6a7a89; }
+        .dome-ind { background: #22a055; color: #fff; border-radius: 7px; padding: 2px 6px; font-size: 0.72rem; }
+        .fade-row { background: #f9f6e7; border-left: 4px solid #fed972; }
+        .sep-row { background: #e2edff; color: #6c757d; font-weight: bold; }
+        .loading-txt { text-align: center; color: #666; padding: 30px; }
+        .error-txt { background: #ffebeb; color: #c00; padding: 21px; border-radius: 7px; }
+        /* Responsive patchy styles */
+        @media (max-width: 730px) {
+            th, td { padding: 5px 2px; font-size: 0.83rem; }
+            .gamecell { min-width: 130px; }
+            #main-title { font-size: 1.6rem; }
+            .view-btn, .effect-btn { font-size: 0.84rem; padding: 6px 9px;}
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>NFL Stadium Weather Factors</h1>
+    <div>
+        <div id="main-title"><h1>NFL Stadium Weather Table</h1></div>
+        <div class="date-bar">
+            <button onclick="dateChange(-1)" class="view-btn" style="margin-right:18px;">&#60;&#60; Prev</button>
+            <span style="font-weight: bold; font-size: 1.25rem;" id="dt-spot">September 9, 2025</span>
+            <button onclick="dateChange(1)" class="view-btn" style="margin-left:18px;">Next &#62;&#62;</button>
         </div>
-
-        <div class="date-nav">
-            <div class="date-header">
-                <button class="date-nav-btn">&lt;&lt; 9/08</button>
-                <div class="current-date">September 9, 2025</div>
-                <button class="date-nav-btn">9/10 &gt;&gt;</button>
-            </div>
-            <div class="weather-summary" id="weather-summary">
-                Loading weather conditions for NFL stadiums...
-            </div>
-            <div class="last-updated" id="last-updated"></div>
+        <div style="margin-top:6px;margin-bottom:6px;">
+            <span id="wr-sum">Loading stadium weather info...</span>
+            <span id="last-changed" style="font-size:0.95rem;color:#666;float:right;"></span>
         </div>
-
-        <div class="nav-links">
-            <a href="#" style="color: white;">Weather Impact Guide</a>
-            <span style="color: white;">—</span>
-            <a href="#" style="color: white;">NFL Stadium Factors</a>
+        <div id="nav">
+            <a href="#">Weather Guide</a> | <a href="#">Stadium Factors</a>
         </div>
-
-        <div class="view-buttons">
-            <button class="active" onclick="changeView('percentage')">Stadium %</button>
-            <button onclick="changeView('team')">Team Weather</button>
-            <button onclick="changeView('position')">Position Groups</button>
-            <button onclick="changeView('matchup')">Matchup Alert</button>
+        <div style="text-align:center; margin-bottom:12px;">
+            <button class="view-btn active" onclick="setView('default')">Table view</button>
+            <button class="view-btn" onclick="setView('team')">Team Weather</button>
+            <button class="view-btn" onclick="setView('pos')">Units</button>
+            <button class="view-btn" onclick="setView('alert')">Matchup Alert</button>
         </div>
-
-        <div class="effect-buttons">
-            <button class="active" onclick="changeEffect('combined')">Weather Adjusted</button>
-            <button onclick="changeEffect('stadium')">Base Factors Only</button>
-            <button onclick="changeEffect('weather')">Weather Impact Only</button>
+        <div style="text-align:center;margin-bottom:14px;">
+            <button class="effect-btn active" onclick="setEffect('all')">Weather adjusted</button>
+            <button class="effect-btn" onclick="setEffect('stad')">Base stadium only</button>
+            <button class="effect-btn" onclick="setEffect('wthr')">Weather impact only</button>
         </div>
-
-        <div class="games-container">
-            <table class="games-table">
-                <thead>
-                    <tr id="table-header">
-                        <th>Stadium</th>
-                        <th>Passing</th>
-                        <th>Rushing</th>
-                        <th>Kicking</th>
-                        <th>Weather</th>
-                    </tr>
-                </thead>
-                <tbody id="stadiums-tbody">
-                    <tr>
-                        <td colspan="5" class="loading">Loading NFL stadium factors data...</td>
-                    </tr>
+        <div class="games-area">
+            <table id="tbl-main">
+                <thead id="tbl-head"></thead>
+                <tbody id="tbl-body">
+                    <tr><td colspan="5" class="loading-txt">Loading stadium factors...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
-
     <script>
-        let currentView = 'percentage';
-        let currentEffect = 'combined';
-        let stadiumFactorsData = null;
-
-        // NFL team matchups (simulated for each stadium)
-        const stadiumTeams = {
-            "Lambeau Field": { home: "GB", away: "CHI" },
-            "Soldier Field": { home: "CHI", away: "GB" },
-            "Cleveland Browns Stadium": { home: "CLE", away: "PIT" },
-            "Heinz Field": { home: "PIT", away: "BAL" },
-            "M&T Bank Stadium": { home: "BAL", away: "CIN" },
-            "MetLife Stadium": { home: "NYG", away: "WAS" },
-            "Gillette Stadium": { home: "NE", away: "BUF" },
-            "Hard Rock Stadium": { home: "MIA", away: "NYJ" },
-            "TIAA Bank Field": { home: "JAX", away: "TEN" },
-            "Empower Field": { home: "DEN", away: "LV" },
-            "Lumen Field": { home: "SEA", away: "ARI" },
-            "Levi's Stadium": { home: "SF", away: "SEA" },
-            "Raymond James Stadium": { home: "TB", away: "CAR" },
-            "NRG Stadium": { home: "HOU", away: "IND" },
-            "Lucas Oil Stadium": { home: "IND", away: "JAX" },
-            "Allegiant Stadium": { home: "LV", away: "LAC" },
-            "SoFi Stadium": { home: "LAR", away: "SF" },
-            "State Farm Stadium": { home: "ARI", away: "LAR" },
-            "AT&T Stadium": { home: "DAL", away: "PHI" },
-            "U.S. Bank Stadium": { home: "MIN", away: "DET" },
-            "Ford Field": { home: "DET", away: "MIN" },
-            "Mercedes-Benz Superdome": { home: "NO", away: "ATL" },
-            "Mercedes-Benz Stadium": { home: "ATL", away: "NO" }
+        var currentView = 'default', currentEffect = 'all';
+        var sf_data = null;
+        var teamsRef = {
+            "Lambeau Field": { h: "GB", a: "CHI" }, "Soldier Field": { h: "CHI", a: "GB" },
+            "Cleveland Browns Stadium": { h: "CLE", a: "PIT" }, "Heinz Field": { h: "PIT", a: "BAL" },
+            "M&T Bank Stadium": { h: "BAL", a: "CIN" }, "MetLife Stadium": { h: "NYG", a: "WAS" },
+            "Gillette Stadium": { h: "NE", a: "BUF" }, "Hard Rock Stadium": { h: "MIA", a: "NYJ" },
+            "TIAA Bank Field": { h: "JAX", a: "TEN" }, "Empower Field": { h: "DEN", a: "LV" },
+            "Lumen Field": { h: "SEA", a: "ARI" }, "Levi's Stadium": { h: "SF", a: "SEA" },
+            "Raymond James Stadium": { h: "TB", a: "CAR" }, "NRG Stadium": { h: "HOU", a: "IND" },
+            "Lucas Oil Stadium": { h: "IND", a: "JAX" }, "Allegiant Stadium": { h: "LV", a: "LAC" },
+            "SoFi Stadium": { h: "LAR", a: "SF" }, "State Farm Stadium": { h: "ARI", a: "LAR" },
+            "AT&T Stadium": { h: "DAL", a: "PHI" }, "U.S. Bank Stadium": { h: "MIN", a: "DET" },
+            "Ford Field": { h: "DET", a: "MIN" }, "Mercedes-Benz Superdome": { h: "NO", a: "ATL" },
+            "Mercedes-Benz Stadium": { h: "ATL", a: "NO" }
         };
 
-        async function loadStadiumFactors() {
-            console.log('Loading stadium factors...');
-            try {
-                const response = await fetch('/.netlify/functions/stadium-factors');
-                console.log('API response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('API data received:', data);
-                
-                stadiumFactorsData = data;
-                updateLastUpdated();
-                updateWeatherSummary();
-                renderTable();
-                
-            } catch (error) {
-                console.error('Error loading stadium factors:', error);
-                document.getElementById('stadiums-tbody').innerHTML = `
-                    <tr><td colspan="5" class="error">Unable to load stadium factors data: ${error.message}</td></tr>
-                `;
-            }
+        function setView(v) {
+            currentView = v;
+            document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active')});
+            if(v=='default') document.querySelector('.view-btn').classList.add('active');
+            else if(v=='team') document.querySelectorAll('.view-btn')[1].classList.add('active');
+            else if(v=='pos') document.querySelectorAll('.view-btn')[2].classList.add('active');
+            else document.querySelectorAll('.view-btn')[3].classList.add('active');
+            refreshTbl();
         }
-
-        function updateLastUpdated() {
-            if (stadiumFactorsData && stadiumFactorsData.last_updated) {
-                const date = new Date(stadiumFactorsData.last_updated);
-                const timeString = date.toLocaleTimeString();
-                document.getElementById('last-updated').textContent = `Last Updated: ${timeString}`;
-            }
+        function setEffect(e) {
+            currentEffect = e;
+            var btns = document.querySelectorAll('.effect-btn');
+            btns.forEach(function(b){b.classList.remove('active')});
+            if(e=='all') btns[0].classList.add('active');
+            else if(e=='stad') btns[1].classList.add('active');
+            else btns[2].classList.add('active');
+            refreshTbl();
         }
-
-        function updateWeatherSummary() {
-            if (stadiumFactorsData && stadiumFactorsData.stadium_factors) {
-                const outdoorStadiums = stadiumFactorsData.stadium_factors.filter(s => !s.is_dome);
-                const domeStadiums = stadiumFactorsData.stadium_factors.filter(s => s.is_dome);
-                
-                // Count weather alerts
-                let weatherAlerts = 0;
-                outdoorStadiums.forEach(stadium => {
-                    if (stadium.team_weather_advantage && stadium.team_weather_advantage.advantage_score) {
-                        if (stadium.team_weather_advantage.advantage_score > 108 || stadium.team_weather_advantage.advantage_score < 96) {
-                            weatherAlerts++;
-                        }
-                    }
+        function dateChange(i) {
+            // Date navigation logic here if implemented
+            alert('Date navigation not yet coded');
+        }
+        function formatPct(f) {
+            var pct = Math.round((f-1)*100);
+            return (pct>0?'+':'') + pct + '%';
+        }
+        function formatDiff(df) {
+            var pct = Math.round(df*100);
+            return Math.abs(pct)<1 ? '0%' : (pct>0?'+':'')+pct+'%';
+        }
+        function getClass(val) {
+            if(val>1.05) return 'factor-plus';
+            if(val<0.95) return 'factor-minus';
+            return 'factor-flat';
+        }
+        function refreshTbl() {
+            if(!sf_data || !sf_data.stadium_factors) {
+                document.getElementById('tbl-body').innerHTML='<tr><td colspan="5" class="loading-txt">Loading stadium factors...</td></tr>';
+                return;
+            }
+            // Table header
+            var hd = '';
+            if(currentView=='team')
+                hd='<tr><th>Matchup</th><th>Home Adv.</th><th>Weather</th><th>Score</th><th>Conditions</th></tr>';
+            else if(currentView=='pos')
+                hd='<tr><th>Stadium</th><th>Passing</th><th>Rushing</th><th>Kicking</th><th>Defense</th></tr>';
+            else if(currentView=='alert')
+                hd='<tr><th>Alert</th><th>Teams</th><th>Factor</th><th>Impact</th><th>Note</th></tr>';
+            else
+                hd='<tr><th>Stadium</th><th>Passing</th><th>Rushing</th><th>Kicking</th><th>Weather</th></tr>';
+            document.getElementById('tbl-head').innerHTML=hd;
+            // Table body
+            var tbC='';
+            if(currentView=='team') {
+                sf_data.stadium_factors.forEach(function(fact){
+                    if(fact.is_dome) return;
+                    var adv = fact.team_weather_advantage;
+                    if(!adv) return;
+                    var tmref = teamsRef[fact.stadium]||{h:"HOME",a:"AWAY"};
+                    var cls = adv.advantage_score>108? 'factor-plus' : adv.advantage_score<96?'factor-minus':'factor-flat';
+                    tbC += '<tr><td class="gamecell">'+tmref.a+' @ '+tmref.h+'<br><span style="color:#4488dd;font-size:0.90rem;">'+fact.stadium+'</span></td>'
+                        +'<td class="'+cls+'">'+Math.round(adv.home_advantage*100)+'%</td>'
+                        +'<td style="font-size:0.89rem;">'+adv.weather_narrative+'</td>'
+                        +'<td class="'+cls+'">'+adv.advantage_score+'</td>'
+                        +'<td style="font-size:0.8rem;">'+fact.weather+'</td></tr>';
                 });
-                
-                document.getElementById('weather-summary').textContent = 
-                    `${outdoorStadiums.length} outdoor stadiums monitored, ${domeStadiums.length} indoor. ${weatherAlerts} weather advantage alerts detected.`;
-            }
-        }
-
-        function updateTableHeaders() {
-            const header = document.getElementById('table-header');
-            
-            if (currentView === 'team') {
-                header.innerHTML = `
-                    <tr>
-                        <th>Matchup</th>
-                        <th>Home Advantage</th>
-                        <th>Weather Narrative</th>
-                        <th>Advantage Score</th>
-                        <th>Conditions</th>
-                    </tr>
-                `;
-            } else if (currentView === 'position') {
-                header.innerHTML = `
-                    <tr>
-                        <th>Stadium</th>
-                        <th>Passing Impact</th>
-                        <th>Rushing Impact</th>
-                        <th>Kicking Impact</th>
-                        <th>Defense Impact</th>
-                    </tr>
-                `;
-            } else if (currentView === 'matchup') {
-                header.innerHTML = `
-                    <tr>
-                        <th>Alert Type</th>
-                        <th>Teams Affected</th>
-                        <th>Weather Factor</th>
-                        <th>Impact Level</th>
-                        <th>Details</th>
-                    </tr>
-                `;
+            } else if(currentView=='pos') {
+                sf_data.stadium_factors.forEach(function(fact){
+                    var imp = fact.position_impacts;
+                    if(!imp) return;
+                    tbC += '<tr><td class="gamecell">'+fact.stadium+'<br><span style="color:#4488dd;font-size:0.90rem;">'+fact.home_team+'</span></td>'
+                        +'<td class="'+getClass(imp.passing_offense)+'">'+formatPct(imp.passing_offense)+'</td>'
+                        +'<td class="'+getClass(imp.rushing_offense)+'">'+formatPct(imp.rushing_offense)+'</td>'
+                        +'<td class="'+getClass(imp.field_goal_unit)+'">'+formatPct(imp.field_goal_unit)+'</td>'
+                        +'<td class="'+getClass(imp.defense)+'">'+formatPct(imp.defense)+'</td></tr>';
+                });
+            } else if(currentView=='alert') {
+                var alerts=[];
+                sf_data.stadium_factors.forEach(function(fact){
+                    if(fact.is_dome) return;
+                    var adv = fact.team_weather_advantage;
+                    var wth = fact.weather_details;
+                    if(!(adv&&wth)) return;
+                    if(wth.temp<=32&&adv.advantage_score>=110)
+                        alerts.push({ty:"FREEZING ADV",t:fact.home_team+" vs away",f:wth.temp+"F",imp:"HIGH",note:adv.weather_narrative+" (Fumbles up below freezing)",dst:fact.stadium});
+                    if(wth.wind>=20)
+                        alerts.push({ty:"EXTREME WIND",t:fact.stadium, f:wth.wind+" mph", imp:"SEVERE", note:"FG down to 77% acc,",dst:fact.stadium});
+                    else if(wth.wind>=15)
+                        alerts.push({ty:"HIGH WIND",t:fact.stadium, f:wth.wind+" mph", imp:"HIGH", note:"Pass/FG reduced.",dst:fact.stadium});
+                    if(wth.precipitation=='snow')
+                        alerts.push({ty:"SNOW", t:fact.stadium, f:"Snow", imp:"HIGH", note:"Rush/FG up, Pass/Score down.",dst:fact.stadium});
+                    else if(wth.precipitation=='rain'&&adv.advantage_score>=105)
+                        alerts.push({ty:"RAIN ADV",t:fact.home_team+" vs away",f:"Rain",imp:"MOD",note:"Home team better in wet.",dst:fact.stadium});
+                    if(adv.advantage_score>=115)
+                        alerts.push({ty:"MAJOR ADV",t:fact.home_team+" vs away",f:adv.weather_factors.join(','),imp:"EXTREME",note:adv.weather_narrative,dst:fact.stadium});
+                    else if(adv.advantage_score<=92)
+                        alerts.push({ty:"VISITOR ADV",t:"visiting @ "+fact.stadium,f:adv.weather_factors.join(','),imp:"MOD",note:"Visitor handles weather better.",dst:fact.stadium});
+                    if(adv.weather_factors&&(adv.weather_factors.indexOf("dome team outdoors")>=0))
+                        alerts.push({ty:"DOME OUTSIDE",t:"Visiting dome @ "+fact.stadium,f:"Outdoor",imp:"HIGH",note:"Dome team gets penalty.",dst:fact.stadium});
+                });
+                if(alerts.length==0)
+                    tbC='<tr><td colspan="5" class="loading-txt">No notable weather alerts for these games.</td></tr>';
+                else
+                    alerts.forEach(function(a){
+                        var icls=a.imp=="EXTREME"||a.imp=="SEVERE"?'factor-minus':a.imp=="HIGH"?'factor-flat':'factor-plus';
+                        tbC += '<tr><td class="gamecell">'+a.ty+'<br><span style="color:#4488dd;">'+a.dst+'</span></td><td>'+a.t+'</td><td>'+a.f+'</td><td class="'+icls+'">'+a.imp+'</td><td style="font-size:0.83rem;">'+a.note+'</td></tr>';
+                    });
             } else {
-                header.innerHTML = `
-                    <tr>
-                        <th>Stadium</th>
-                        <th>Passing</th>
-                        <th>Rushing</th>
-                        <th>Kicking</th>
-                        <th>Weather</th>
-                    </tr>
-                `;
-            }
-        }
-
-        function renderTable() {
-            console.log('Rendering table...');
-            
-            if (!stadiumFactorsData || !stadiumFactorsData.stadium_factors) {
-                console.error('No stadium factors data available');
-                return;
-            }
-
-            updateTableHeaders();
-            const tbody = document.getElementById('stadiums-tbody');
-            tbody.innerHTML = '';
-
-            if (currentView === 'team') {
-                renderTeamWeatherView(tbody);
-            } else if (currentView === 'position') {
-                renderPositionGroupView(tbody);
-            } else if (currentView === 'matchup') {
-                renderMatchupAlertView(tbody);
-            } else {
-                renderStandardView(tbody);
-            }
-        }
-
-        function renderStandardView(tbody) {
-            let outdoorGamesRendered = false;
-            let domeGamesRendered = false;
-
-            stadiumFactorsData.stadium_factors.forEach((factor, index) => {
-                const teams = stadiumTeams[factor.stadium] || { home: "HOME", away: "AWAY" };
-                const gameTime = `1:${(index % 4) * 15 || '00'} PM`;
-                
-                // Add section header for dome games
-                if (!domeGamesRendered && factor.is_dome && outdoorGamesRendered) {
-                    const separatorRow = document.createElement('tr');
-                    separatorRow.innerHTML = `
-                        <td colspan="5" style="background: #e9ecef; padding: 10px; text-align: center; font-weight: 600; color: #6c757d; border-top: 2px solid #dee2e6;">
-                            Indoor Stadiums (No Weather Impact)
-                        </td>
-                    `;
-                    tbody.appendChild(separatorRow);
-                    domeGamesRendered = true;
-                } else if (!outdoorGamesRendered && !factor.is_dome) {
-                    outdoorGamesRendered = true;
-                }
-                
-                const row = document.createElement('tr');
-                
-                // Add weather impact indicator styling
-                if (!factor.is_dome) {
-                    const hasWeatherImpact = Math.abs(factor.passing_factor - factor.base_passing_factor) > 0.01 ||
-                                           Math.abs(factor.rushing_factor - factor.base_rushing_factor) > 0.01 ||
-                                           Math.abs(factor.kicking_factor - factor.base_kicking_factor) > 0.01;
-                    
-                    if (hasWeatherImpact) {
-                        row.style.borderLeft = "4px solid #ffc107"; // Yellow border for weather impact
-                        row.style.backgroundColor = "#fff9e6"; // Light yellow background
-                    }
-                }
-                
-                let passingDisplay, rushingDisplay, kickingDisplay;
-                
-                if (currentEffect === 'combined') {
-                    if (currentView === 'percentage') {
-                        passingDisplay = formatAsPercentage(factor.passing_factor);
-                        rushingDisplay = formatAsPercentage(factor.rushing_factor);
-                        kickingDisplay = formatAsPercentage(factor.kicking_factor);
+                // default view
+                var odr = false, domr = false;
+                sf_data.stadium_factors.forEach(function(fact,idx){
+                    var tmref = teamsRef[fact.stadium]||{h:"HOME",a:"AWAY"};
+                    var hr = '1:'+(idx%4*15||'00') + ' PM';
+                    if(!domr && fact.is_dome && odr) {
+                        tbC += '<tr class="sep-row"><td colspan="5">Indoor Stadiums (No Weather Impact)</td></tr>';
+                        domr=true;
+                    } else if(!odr && !fact.is_dome) odr=true;
+                    var f1, f2, f3;
+                    if(currentEffect=='all') {
+                        f1 = formatPct(fact.passing_factor);
+                        f2 = formatPct(fact.rushing_factor);
+                        f3 = formatPct(fact.kicking_factor);
+                    } else if(currentEffect=='stad') {
+                        f1 = formatPct(fact.base_passing_factor);
+                        f2 = formatPct(fact.base_rushing_factor);
+                        f3 = formatPct(fact.base_kicking_factor);
                     } else {
-                        passingDisplay = factor.passing_factor.toFixed(2);
-                        rushingDisplay = factor.rushing_factor.toFixed(2);
-                        kickingDisplay = factor.kicking_factor.toFixed(2);
+                        f1 = formatDiff(fact.passing_factor-fact.base_passing_factor);
+                        f2 = formatDiff(fact.rushing_factor-fact.base_rushing_factor);
+                        f3 = formatDiff(fact.kicking_factor-fact.base_kicking_factor);
                     }
-                } else if (currentEffect === 'stadium') {
-                    if (currentView === 'percentage') {
-                        passingDisplay = formatAsPercentage(factor.base_passing_factor);
-                        rushingDisplay = formatAsPercentage(factor.base_rushing_factor);
-                        kickingDisplay = formatAsPercentage(factor.base_kicking_factor);
-                    } else {
-                        passingDisplay = factor.base_passing_factor.toFixed(2);
-                        rushingDisplay = factor.base_rushing_factor.toFixed(2);
-                        kickingDisplay = factor.base_kicking_factor.toFixed(2);
-                    }
-                } else {
-                    const passingDiff = factor.passing_factor - factor.base_passing_factor;
-                    const rushingDiff = factor.rushing_factor - factor.base_rushing_factor;
-                    const kickingDiff = factor.kicking_factor - factor.base_kicking_factor;
-                    
-                    passingDisplay = formatDifference(passingDiff);
-                    rushingDisplay = formatDifference(rushingDiff);
-                    kickingDisplay = formatDifference(kickingDiff);
-                }
-
-                let weatherDisplay = factor.weather;
-                if (factor.is_dome) {
-                    weatherDisplay = `<span class="dome-indicator">DOME</span>`;
-                }
-
-                row.innerHTML = `
-                    <td class="game-cell">
-                        <div class="stadium-name">${factor.stadium}</div>
-                        <div class="game-details">${teams.away} @ ${teams.home} ${gameTime}</div>
-                        <div class="weather-info">
-                            ${factor.is_dome ? '' : factor.weather}
-                        </div>
-                    </td>
-                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.passing_factor : factor.base_passing_factor)}">
-                        ${passingDisplay}
-                    </td>
-                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.rushing_factor : factor.base_rushing_factor)}">
-                        ${rushingDisplay}
-                    </td>
-                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.kicking_factor : factor.base_kicking_factor)}">
-                        ${kickingDisplay}
-                    </td>
-                    <td style="font-size: 0.8rem;">
-                        ${weatherDisplay}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
-        }
-
-        function renderTeamWeatherView(tbody) {
-            stadiumFactorsData.stadium_factors.forEach((factor) => {
-                if (factor.is_dome) return; // Skip domes for team weather view
-                
-                const teamAdvantage = factor.team_weather_advantage;
-                if (!teamAdvantage) return;
-                
-                const teams = stadiumTeams[factor.stadium] || { home: "HOME", away: "AWAY" };
-                const row = document.createElement('tr');
-                
-                const advantageClass = teamAdvantage.advantage_score > 108 ? 'factor-positive' : 
-                                     teamAdvantage.advantage_score < 96 ? 'factor-negative' : 'factor-neutral';
-                
-                row.innerHTML = `
-                    <td class="game-cell">
-                        <div class="stadium-name">${teams.away} @ ${teams.home}</div>
-                        <div class="game-details">${factor.stadium}</div>
-                        <div class="weather-info">${factor.home_team}</div>
-                    </td>
-                    <td class="${advantageClass}">
-                        ${(teamAdvantage.home_advantage * 100).toFixed(0)}%
-                    </td>
-                    <td style="font-size: 0.8rem; max-width: 200px;">
-                        ${teamAdvantage.weather_narrative}
-                    </td>
-                    <td class="${advantageClass}">
-                        ${teamAdvantage.advantage_score}
-                    </td>
-                    <td style="font-size: 0.8rem;">
-                        ${factor.weather}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
-        }
-
-        function renderPositionGroupView(tbody) {
-            stadiumFactorsData.stadium_factors.forEach((factor) => {
-                const impacts = factor.position_impacts;
-                if (!impacts) return;
-                
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td class="game-cell">
-                        <div class="stadium-name">${factor.stadium}</div>
-                        <div class="game-details">${factor.home_team}</div>
-                        <div class="weather-info">${factor.weather}</div>
-                    </td>
-                    <td class="${getFactorClass(impacts.passing_offense)}">
-                        ${formatAsPercentage(impacts.passing_offense)}
-                    </td>
-                    <td class="${getFactorClass(impacts.rushing_offense)}">
-                        ${formatAsPercentage(impacts.rushing_offense)}
-                    </td>
-                    <td class="${getFactorClass(impacts.field_goal_unit)}">
-                        ${formatAsPercentage(impacts.field_goal_unit)}
-                    </td>
-                    <td class="${getFactorClass(impacts.defense)}">
-                        ${formatAsPercentage(impacts.defense)}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
-        }
-
-        function renderMatchupAlertView(tbody) {
-            const alerts = [];
-            console.log('Generating matchup alerts...'); // Debug log
-            
-            stadiumFactorsData.stadium_factors.forEach((factor) => {
-                if (factor.is_dome) return;
-                
-                const teamAdvantage = factor.team_weather_advantage;
-                const weather = factor.weather_details;
-                
-                console.log('Processing alerts for', factor.stadium, 'advantage:', teamAdvantage); // Debug log
-                
-                if (!teamAdvantage || !weather) return;
-                
-                // Generate alerts based on research-backed thresholds
-                if (weather.temp <= 32 && teamAdvantage.advantage_score >= 110) {
-                    alerts.push({
-                        type: "FREEZING WEATHER ADVANTAGE",
-                        teams: `${factor.home_team} vs visiting team`,
-                        factor: `${weather.temp}°F (Below freezing)`,
-                        impact: "HIGH",
-                        details: `${teamAdvantage.weather_narrative}. Fumbles increase 23% below freezing.`,
-                        stadium: factor.stadium
-                    });
-                }
-                
-                if (weather.wind >= 20) {
-                    alerts.push({
-                        type: "EXTREME WIND ALERT",
-                        teams: `All teams at ${factor.stadium}`,
-                        factor: `${weather.wind} mph winds`,
-                        impact: "SEVERE",
-                        details: "Field goal accuracy drops to 77% vs expected 89%. Passing severely impacted.",
-                        stadium: factor.stadium
-                    });
-                } else if (weather.wind >= 15) {
-                    alerts.push({
-                        type: "HIGH WIND ALERT",
-                        teams: `All teams at ${factor.stadium}`,
-                        factor: `${weather.wind} mph winds`,
-                        impact: "HIGH",
-                        details: "Passing completion drops 8-15%. Kicking accuracy reduced.",
-                        stadium: factor.stadium
-                    });
-                }
-                
-                if (weather.precipitation === 'snow') {
-                    alerts.push({
-                        type: "SNOW GAME ALERT",
-                        teams: `All teams at ${factor.stadium}`,
-                        factor: "Snow conditions",
-                        impact: "HIGH",
-                        details: "Field goal accuracy drops to 76%. Rushing favored over passing. 25% scoring decrease in heavy snow.",
-                        stadium: factor.stadium
-                    });
-                } else if (weather.precipitation === 'rain' && teamAdvantage.advantage_score >= 105) {
-                    alerts.push({
-                        type: "RAIN ADVANTAGE",
-                        teams: `${factor.home_team} vs visiting team`,
-                        factor: "Rain conditions",
-                        impact: "MODERATE",
-                        details: "QB completion drops 12%. Home team better equipped for wet conditions.",
-                        stadium: factor.stadium
-                    });
-                }
-                
-                if (teamAdvantage.advantage_score >= 115) {
-                    alerts.push({
-                        type: "MAJOR WEATHER ADVANTAGE",
-                        teams: `${factor.home_team} vs visiting team`,
-                        factor: teamAdvantage.weather_factors.join(", "),
-                        impact: "EXTREME",
-                        details: `Major home advantage: ${teamAdvantage.weather_narrative}`,
-                        stadium: factor.stadium
-                    });
-                } else if (teamAdvantage.advantage_score <= 92) {
-                    alerts.push({
-                        type: "VISITING TEAM ADVANTAGE",
-                        teams: `Visiting team at ${factor.stadium}`,
-                        factor: teamAdvantage.weather_factors.join(", "),
-                        impact: "MODERATE",
-                        details: "Away team handles weather conditions better than home team.",
-                        stadium: factor.stadium
-                    });
-                }
-                
-                // Dome team playing outdoors alert
-                if (teamAdvantage.weather_factors.includes("dome team outdoors")) {
-                    alerts.push({
-                        type: "DOME TEAM OUTDOORS",
-                        teams: `Visiting dome team at ${factor.stadium}`,
-                        factor: "Outdoor elements",
-                        impact: "HIGH",
-                        details: "Dome team faces 8-12% penalty playing in outdoor weather conditions.",
-                        stadium: factor.stadium
-                    });
-                }
-            });
-            
-            console.log('Generated', alerts.length, 'alerts'); // Debug log
-            
-            if (alerts.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="5" style="text-align: center; padding: 40px; color: #666;">No significant weather advantages detected for current conditions</td>`;
-                tbody.appendChild(row);
-                return;
+                    var weatherCell = fact.is_dome ? '<span class="dome-ind">DOME</span>' : fact.weather;
+                    var addCls = (!fact.is_dome) && (
+                        Math.abs(fact.passing_factor-fact.base_passing_factor)>0.01||
+                        Math.abs(fact.rushing_factor-fact.base_rushing_factor)>0.01||
+                        Math.abs(fact.kicking_factor-fact.base_kicking_factor)>0.01 ) ? 'fade-row':'';
+                    tbC += '<tr class="'+addCls+'"><td class="gamecell"><div style="font-weight:bold;color:#234889">'+fact.stadium+'</div>'
+                        +'<div>'+tmref.a+' @ '+tmref.h+' '+hr+'</div>'
+                        +'<div style="font-size:0.81rem;color:#7ba5c9;">'+(fact.is_dome?'':fact.weather)+'</div></td>'
+                        +'<td class="'+getClass(currentEffect=='all'?fact.passing_factor:fact.base_passing_factor)+'">'+f1+'</td>'
+                        +'<td class="'+getClass(currentEffect=='all'?fact.rushing_factor:fact.base_rushing_factor)+'">'+f2+'</td>'
+                        +'<td class="'+getClass(currentEffect=='all'?fact.kicking_factor:fact.base_kicking_factor)+'">'+f3+'</td>'
+                        +'<td style="font-size:0.80rem;">'+weatherCell+'</td></tr>';
+                });
             }
-            
-            // Sort alerts by impact level
-            const impactOrder = { 'EXTREME': 4, 'SEVERE': 3, 'HIGH': 2, 'MODERATE': 1 };
-            alerts.sort((a, b) => impactOrder[b.impact] - impactOrder[a.impact]);
-            
-            alerts.forEach(alert => {
-                const row = document.createElement('tr');
-                const impactClass = alert.impact === 'EXTREME' || alert.impact === 'SEVERE' ? 'factor-negative' : 
-                                  alert.impact === 'HIGH' ? 'factor-neutral' : 'factor-positive';
-                
-                row.innerHTML = `
-                    <td class="game-cell">
-                        <div class="stadium-name">${alert.type}</div>
-                        <div class="game-details">${alert.stadium}</div>
-                    </td>
-                    <td style="font-size: 0.9rem;">
-                        ${alert.teams}
-                    </td>
-                    <td style="font-size: 0.9rem;">
-                        ${alert.factor}
-                    </td>
-                    <td class="${impactClass}">
-                        ${alert.impact}
-                    </td>
-                    <td style="font-size: 0.8rem;">
-                        ${alert.details}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
+            document.getElementById('tbl-body').innerHTML=tbC;
         }
-
-        function formatAsPercentage(factor) {
-            const percent = ((factor - 1) * 100).toFixed(0);
-            return `${percent > 0 ? '+' : ''}${percent}%`;
-        }
-
-        function formatDifference(diff) {
-            const percent = (diff * 100).toFixed(0);
-            if (Math.abs(percent) < 1) return '0%';
-            return `${percent > 0 ? '+' : ''}${percent}%`;
-        }
-
-        function getFactorClass(value) {
-            if (value > 1.05) return 'factor-positive';
-            if (value < 0.95) return 'factor-negative';
-            return 'factor-neutral';
-        }
-
-        function changeView(view) {
-            currentView = view;
-            updateActiveButtons('.view-buttons button', view);
-            renderTable();
-            console.log('View changed to:', view);
-        }
-
-        function changeEffect(effect) {
-            currentEffect = effect;
-            updateActiveButtons('.effect-buttons button', effect);
-            if (currentView === 'percentage') {
-                renderTable(); // Re-render for standard view
+        function updateWeatherSummary() {
+            if(sf_data && sf_data.stadium_factors) {
+                var outdoors = sf_data.stadium_factors.filter(function(x){return !x.is_dome;}).length;
+                var domes = sf_data.stadium_factors.length-outdoors;
+                var alertCnt = 0;
+                sf_data.stadium_factors.forEach(function(f){
+                    if(f.is_dome) return;
+                    var adv = f.team_weather_advantage;
+                    if(adv && adv.advantage_score && (adv.advantage_score>108||adv.advantage_score<96)) alertCnt++;
+                });
+                document.getElementById('wr-sum').innerText= outdoors+' outdoor stadiums, '+domes+' indoor. '+alertCnt+' possible weather alerts.';
             }
-            console.log('Effect changed to:', effect);
+        }
+        function updateLastUpdated() {
+            if(sf_data && sf_data.last_updated) {
+                var dat = new Date(sf_data.last_updated);
+                document.getElementById('last-changed').innerText = "Last updated: "+dat.toLocaleTimeString();
+            }
         }
 
-        function updateActiveButtons(selector, activeValue) {
-            document.querySelectorAll(selector).forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.onclick && btn.onclick.toString().includes(`'${activeValue}'`)) {
-                    btn.classList.add('active');
-                }
+        function getData() {
+            // Simulate API call
+            fetch('/.netlify/functions/stadium-factors')
+            .then(function(resp){
+                if(!resp.ok) throw Error("HTTP "+resp.status);
+                return resp.json();
+            })
+            .then(function(dt){
+                sf_data = dt; updateLastUpdated(); updateWeatherSummary(); refreshTbl();
+            })
+            .catch(function(e){
+                document.getElementById('tbl-body').innerHTML='<tr><td colspan="5" class="error-txt">Error loading stadium data: '+e.message+'</td></tr>';
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing...');
-            loadStadiumFactors();
-            
-            setInterval(loadStadiumFactors, 30 * 60 * 1000);
+        document.addEventListener('DOMContentLoaded', function(){
+            getData();
+            setInterval(getData, 30*60*1000);
         });
     </script>
 </body>
