@@ -26,10 +26,37 @@
             font-size: 0.95rem;
         }
         .date-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
             background: #fafbfc;
             padding: 12px;
             border-radius: 9px;
             box-shadow: 0 2px 5px #aaa7;
+        }
+
+        .date-bar button:first-child {
+            margin-left: 0;
+            margin-right: auto;
+        }
+
+        .date-bar button:last-child {
+            margin-left: auto;
+            margin-right: 0;
+        }
+
+        #dt-spot {
+            font-weight: bold;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        #wr-sum {
+            color: #f8f9fa; /* Light color for good contrast on dark blue background */
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 6px;
         }
 
 
