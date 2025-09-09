@@ -469,4 +469,103 @@
                     }
                 } else if (currentEffect === 'stadium') {
                     if (currentView === 'percentage') {
-                        passingDisplay = formatAsPercentage(factor.base_
+                        passingDisplay = formatAsPercentage(factor.base_passing_factor);
+                        rushingDisplay = formatAsPercentage(factor.base_rushing_factor);
+                        kickingDisplay = formatAsPercentage(factor.base_kicking_factor);
+                    } else {
+                        passingDisplay = factor.base_passing_factor.toFixed(2);
+                        rushingDisplay = factor.base_rushing_factor.toFixed(2);
+                        kickingDisplay = factor.base_kicking_factor.toFixed(2);
+                    }
+                } else {
+                    // Weather impact only
+                    const passingDiff = factor.passing_factor - factor.base_passing_factor;
+                    const rushingDiff = factor.rushing_factor - factor.base_rushing_factor;
+                    const kickingDiff = factor.kicking_factor - factor.base_kicking_factor;
+                    
+                    passingDisplay = formatDifference(passingDiff);
+                    rushingDisplay = formatDifference(rushingDiff);
+                    kickingDisplay = formatDifference(kickingDiff);
+                }
+
+                // Weather display
+                let weatherDisplay = factor.weather;
+                if (factor.is_dome) {
+                    weatherDisplay = `<span class="dome-indicator">DOME</span>`;
+                }
+
+                row.innerHTML = `
+                    <td class="game-cell">
+                        <div class="stadium-name">${factor.stadium}</div>
+                        <div class="game-details">${teams.away} @ ${teams.home} ${gameTime}</div>
+                        <div class="weather-info">
+                            ${factor.is_dome ? '' : factor.weather}
+                        </div>
+                    </td>
+                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.passing_factor : factor.base_passing_factor)}">
+                        ${passingDisplay}
+                    </td>
+                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.rushing_factor : factor.base_rushing_factor)}">
+                        ${rushingDisplay}
+                    </td>
+                    <td class="${getFactorClass(currentEffect === 'combined' ? factor.kicking_factor : factor.base_kicking_factor)}">
+                        ${kickingDisplay}
+                    </td>
+                    <td style="font-size: 0.8rem;">
+                        ${weatherDisplay}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function formatAsPercentage(factor) {
+            const percent = ((factor - 1) * 100).toFixed(0);
+            return `${percent > 0 ? '+' : ''}${percent}%`;
+        }
+
+        function formatDifference(diff) {
+            const percent = (diff * 100).toFixed(0);
+            if (Math.abs(percent) < 1) return '0%';
+            return `${percent > 0 ? '+' : ''}${percent}%`;
+        }
+
+        function getFactorClass(value) {
+            if (value > 1.05) return 'factor-positive';
+            if (value < 0.95) return 'factor-negative';
+            return 'factor-neutral';
+        }
+
+        function changeView(view) {
+            currentView = view;
+            updateActiveButtons('.view-buttons button', view);
+            renderTable();
+            console.log('View changed to:', view);
+        }
+
+        function changeEffect(effect) {
+            currentEffect = effect;
+            updateActiveButtons('.effect-buttons button', effect);
+            renderTable();
+            console.log('Effect changed to:', effect);
+        }
+
+        function updateActiveButtons(selector, activeValue) {
+            document.querySelectorAll(selector).forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.onclick && btn.onclick.toString().includes(`'${activeValue}'`)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...');
+            loadStadiumFactors();
+            
+            setInterval(loadStadiumFactors, 30 * 60 * 1000);
+        });
+    </script>
+</body>
+</html>
