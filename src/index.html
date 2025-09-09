@@ -293,7 +293,7 @@
                 // default view
                 var odr = false, domr = false;
                 sf_data.stadium_factors.forEach(function(fact,idx){
-                    var tmref = teamsRef[fact.stadium]||{h:"HOME",a:"AWAY"};
+                    var tmref = teamsRef[fact.stadium] || {h:"HOME", a:"AWAY"};
                     var hr = '1:'+(idx%4*15||'00') + ' PM';
                     if(!domr && fact.is_dome && odr) {
                         tbC += '<tr class="sep-row"><td colspan="5">Indoor Stadiums (No Weather Impact)</td></tr>';
@@ -324,7 +324,7 @@
                         +'<td class="'+getClass(currentEffect=='all'?fact.passing_factor:fact.base_passing_factor)+'">'+f1+'</td>'
                         +'<td class="'+getClass(currentEffect=='all'?fact.rushing_factor:fact.base_rushing_factor)+'">'+f2+'</td>'
                         +'<td class="'+getClass(currentEffect=='all'?fact.kicking_factor:fact.base_kicking_factor)+'">'+f3+'</td>'
-                        +'<td style="font-size:0.80rem;">'+weatherCell+'</td></tr>';
+    +'<td style="font-size:0.80rem;">'+weatherCell+'</td></tr>';
                 });
             }
             document.getElementById('tbl-body').innerHTML=tbC;
