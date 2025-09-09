@@ -652,6 +652,7 @@
 
         function renderMatchupAlertView(tbody) {
             const alerts = [];
+            console.log('Generating matchup alerts...'); // Debug log
             
             stadiumFactorsData.stadium_factors.forEach((factor) => {
                 if (factor.is_dome) return;
@@ -659,64 +660,117 @@
                 const teamAdvantage = factor.team_weather_advantage;
                 const weather = factor.weather_details;
                 
+                console.log('Processing alerts for', factor.stadium, 'advantage:', teamAdvantage); // Debug log
+                
                 if (!teamAdvantage || !weather) return;
                 
-                // Generate alerts based on conditions
-                if (weather.temp < 40 && teamAdvantage.advantage_score > 110) {
+                // Generate alerts based on research-backed thresholds
+                if (weather.temp <= 32 && teamAdvantage.advantage_score >= 110) {
                     alerts.push({
-                        type: "COLD WEATHER ADVANTAGE",
+                        type: "FREEZING WEATHER ADVANTAGE",
                         teams: `${factor.home_team} vs visiting team`,
-                        factor: `${weather.temp}°F`,
+                        factor: `${weather.temp}°F (Below freezing)`,
                         impact: "HIGH",
-                        details: "Home team has significant cold weather advantage"
+                        details: `${teamAdvantage.weather_narrative}. Fumbles increase 23% below freezing.`,
+                        stadium: factor.stadium
                     });
                 }
                 
-                if (weather.wind > 20) {
+                if (weather.wind >= 20) {
+                    alerts.push({
+                        type: "EXTREME WIND ALERT",
+                        teams: `All teams at ${factor.stadium}`,
+                        factor: `${weather.wind} mph winds`,
+                        impact: "SEVERE",
+                        details: "Field goal accuracy drops to 77% vs expected 89%. Passing severely impacted.",
+                        stadium: factor.stadium
+                    });
+                } else if (weather.wind >= 15) {
                     alerts.push({
                         type: "HIGH WIND ALERT",
                         teams: `All teams at ${factor.stadium}`,
                         factor: `${weather.wind} mph winds`,
                         impact: "HIGH",
-                        details: "Passing game and kicking severely impacted"
+                        details: "Passing completion drops 8-15%. Kicking accuracy reduced.",
+                        stadium: factor.stadium
                     });
                 }
                 
-                if (weather.precipitation && teamAdvantage.advantage_score > 105) {
+                if (weather.precipitation === 'snow') {
                     alerts.push({
-                        type: "PRECIPITATION ADVANTAGE",
+                        type: "SNOW GAME ALERT",
+                        teams: `All teams at ${factor.stadium}`,
+                        factor: "Snow conditions",
+                        impact: "HIGH",
+                        details: "Field goal accuracy drops to 76%. Rushing favored over passing. 25% scoring decrease in heavy snow.",
+                        stadium: factor.stadium
+                    });
+                } else if (weather.precipitation === 'rain' && teamAdvantage.advantage_score >= 105) {
+                    alerts.push({
+                        type: "RAIN ADVANTAGE",
                         teams: `${factor.home_team} vs visiting team`,
-                        factor: "Rain/Snow conditions",
+                        factor: "Rain conditions",
                         impact: "MODERATE",
-                        details: "Home team better equipped for wet conditions"
+                        details: "QB completion drops 12%. Home team better equipped for wet conditions.",
+                        stadium: factor.stadium
                     });
                 }
                 
-                if (teamAdvantage.advantage_score < 95) {
+                if (teamAdvantage.advantage_score >= 115) {
+                    alerts.push({
+                        type: "MAJOR WEATHER ADVANTAGE",
+                        teams: `${factor.home_team} vs visiting team`,
+                        factor: teamAdvantage.weather_factors.join(", "),
+                        impact: "EXTREME",
+                        details: `Major home advantage: ${teamAdvantage.weather_narrative}`,
+                        stadium: factor.stadium
+                    });
+                } else if (teamAdvantage.advantage_score <= 92) {
                     alerts.push({
                         type: "VISITING TEAM ADVANTAGE",
                         teams: `Visiting team at ${factor.stadium}`,
                         factor: teamAdvantage.weather_factors.join(", "),
                         impact: "MODERATE",
-                        details: "Visiting team handles conditions better than home team"
+                        details: "Away team handles weather conditions better than home team.",
+                        stadium: factor.stadium
+                    });
+                }
+                
+                // Dome team playing outdoors alert
+                if (teamAdvantage.weather_factors.includes("dome team outdoors")) {
+                    alerts.push({
+                        type: "DOME TEAM OUTDOORS",
+                        teams: `Visiting dome team at ${factor.stadium}`,
+                        factor: "Outdoor elements",
+                        impact: "HIGH",
+                        details: "Dome team faces 8-12% penalty playing in outdoor weather conditions.",
+                        stadium: factor.stadium
                     });
                 }
             });
             
+            console.log('Generated', alerts.length, 'alerts'); // Debug log
+            
             if (alerts.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="5" style="text-align: center; padding: 40px; color: #666;">No significant weather advantages detected today</td>`;
+                row.innerHTML = `<td colspan="5" style="text-align: center; padding: 40px; color: #666;">No significant weather advantages detected for current conditions</td>`;
                 tbody.appendChild(row);
                 return;
             }
             
+            // Sort alerts by impact level
+            const impactOrder = { 'EXTREME': 4, 'SEVERE': 3, 'HIGH': 2, 'MODERATE': 1 };
+            alerts.sort((a, b) => impactOrder[b.impact] - impactOrder[a.impact]);
+            
             alerts.forEach(alert => {
                 const row = document.createElement('tr');
-                const impactClass = alert.impact === 'HIGH' ? 'factor-negative' : 'factor-neutral';
+                const impactClass = alert.impact === 'EXTREME' || alert.impact === 'SEVERE' ? 'factor-negative' : 
+                                  alert.impact === 'HIGH' ? 'factor-neutral' : 'factor-positive';
                 
                 row.innerHTML = `
                     <td class="game-cell">
                         <div class="stadium-name">${alert.type}</div>
+                        <div class="game-details">${alert.stadium}</div>
                     </td>
                     <td style="font-size: 0.9rem;">
                         ${alert.teams}
