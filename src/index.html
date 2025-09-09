@@ -620,35 +620,46 @@
         }
 
         function renderPositionGroupView(tbody) {
-            stadiumFactorsData.stadium_factors.forEach((factor) => {
-                const impacts = factor.position_impacts;
-                if (!impacts) return;
-                
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td class="game-cell">
-                        <div class="stadium-name">${factor.stadium}</div>
-                        <div class="game-details">${factor.home_team}</div>
-                        <div class="weather-info">${factor.weather}</div>
-                    </td>
-                    <td class="${getFactorClass(impacts.passing_offense)}">
-                        ${formatAsPercentage(impacts.passing_offense)}
-                    </td>
-                    <td class="${getFactorClass(impacts.rushing_offense)}">
-                        ${formatAsPercentage(impacts.rushing_offense)}
-                    </td>
-                    <td class="${getFactorClass(impacts.field_goal_unit)}">
-                        ${formatAsPercentage(impacts.field_goal_unit)}
-                    </td>
-                    <td class="${getFactorClass(impacts.defense)}">
-                        ${formatAsPercentage(impacts.defense)}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
+    stadiumFactorsData.stadium_factors.forEach((factor) => {
+        const impacts = factor.position_impacts;
+        console.log('Position impacts for', factor.stadium, ':', impacts); // Debug log
+        
+        if (!impacts) {
+            console.log('No position impacts for', factor.stadium);
+            return;
         }
+        
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td class="game-cell">
+                <div class="stadium-name">${factor.stadium}</div>
+                <div class="game-details">${factor.home_team}</div>
+                <div class="weather-info">${factor.weather}</div>
+            </td>
+            <td class="${getFactorClass(impacts.passing_offense)}">
+                ${formatAsPercentage(impacts.passing_offense)}
+                <br><small style="color: #666;">Base: ${formatAsPercentage(factor.base_passing_factor)}</small>
+            </td>
+            <td class="${getFactorClass(impacts.rushing_offense)}">
+                ${formatAsPercentage(impacts.rushing_offense)}
+                <br><small style="color: #666;">Base: ${formatAsPercentage(factor.base_rushing_factor)}</small>
+            </td>
+            <td class="${getFactorClass(impacts.field_goal_unit)}">
+                ${formatAsPercentage(impacts.field_goal_unit)}
+                <br><small style="color: #666;">Base: ${formatAsPercentage(factor.base_kicking_factor)}</small>
+            </td>
+            <td class="${getFactorClass(impacts.defense)}">
+                ${formatAsPercentage(impacts.defense)}
+                <br><small style="color: #666;">Turnover: +${Math.round((impacts.turnover_rate - 1) * 100)}%</small>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+        
 
         function renderMatchupAlertView(tbody) {
             const alerts = [];
