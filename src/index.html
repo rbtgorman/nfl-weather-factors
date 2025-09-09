@@ -325,10 +325,10 @@
         </div>
 
         <div class="view-buttons">
-            <button class="active" onclick="changeView('percentage')">Model %</button>
-            <button onclick="changeView('model')">Model #</button>
-            <button onclick="changeView('weather')">Weather Details</button>
-            <button onclick="changeView('dome')">Indoor vs Outdoor</button>
+            <button class="active" onclick="changeView('percentage')">Stadium %</button>
+            <button onclick="changeView('team')">Team Weather</button>
+            <button onclick="changeView('position')">Position Groups</button>
+            <button onclick="changeView('matchup')">Matchup Alert</button>
         </div>
 
         <div class="effect-buttons">
@@ -340,7 +340,7 @@
         <div class="games-container">
             <table class="games-table">
                 <thead>
-                    <tr>
+                    <tr id="table-header">
                         <th>Stadium</th>
                         <th>Passing</th>
                         <th>Rushing</th>
@@ -373,25 +373,20 @@
             "Gillette Stadium": { home: "NE", away: "BUF" },
             "Hard Rock Stadium": { home: "MIA", away: "NYJ" },
             "TIAA Bank Field": { home: "JAX", away: "TEN" },
-            "Nissan Stadium": { home: "TEN", away: "HOU" },
+            "Empower Field": { home: "DEN", away: "LV" },
+            "Lumen Field": { home: "SEA", away: "ARI" },
+            "Levi's Stadium": { home: "SF", away: "SEA" },
+            "Raymond James Stadium": { home: "TB", away: "CAR" },
             "NRG Stadium": { home: "HOU", away: "IND" },
             "Lucas Oil Stadium": { home: "IND", away: "JAX" },
-            "Arrowhead Stadium": { home: "KC", away: "DEN" },
-            "Empower Field": { home: "DEN", away: "LV" },
             "Allegiant Stadium": { home: "LV", away: "LAC" },
             "SoFi Stadium": { home: "LAR", away: "SF" },
-            "Levi's Stadium": { home: "SF", away: "SEA" },
-            "Lumen Field": { home: "SEA", away: "ARI" },
             "State Farm Stadium": { home: "ARI", away: "LAR" },
             "AT&T Stadium": { home: "DAL", away: "PHI" },
-            "FedExField": { home: "WAS", away: "NYG" },
-            "Lincoln Financial Field": { home: "PHI", away: "DAL" },
             "U.S. Bank Stadium": { home: "MIN", away: "DET" },
             "Ford Field": { home: "DET", away: "MIN" },
             "Mercedes-Benz Superdome": { home: "NO", away: "ATL" },
-            "Bank of America Stadium": { home: "CAR", away: "TB" },
-            "Mercedes-Benz Stadium": { home: "ATL", away: "NO" },
-            "Raymond James Stadium": { home: "TB", away: "CAR" }
+            "Mercedes-Benz Stadium": { home: "ATL", away: "NO" }
         };
 
         async function loadStadiumFactors() {
@@ -433,8 +428,64 @@
                 const outdoorStadiums = stadiumFactorsData.stadium_factors.filter(s => !s.is_dome);
                 const domeStadiums = stadiumFactorsData.stadium_factors.filter(s => s.is_dome);
                 
+                // Count weather alerts
+                let weatherAlerts = 0;
+                outdoorStadiums.forEach(stadium => {
+                    if (stadium.team_weather_advantage && stadium.team_weather_advantage.advantage_score) {
+                        if (stadium.team_weather_advantage.advantage_score > 108 || stadium.team_weather_advantage.advantage_score < 96) {
+                            weatherAlerts++;
+                        }
+                    }
+                });
+                
                 document.getElementById('weather-summary').textContent = 
-                    `Weather conditions tracked for ${outdoorStadiums.length} outdoor stadiums. ${domeStadiums.length} indoor stadiums unaffected by weather.`;
+                    `${outdoorStadiums.length} outdoor stadiums monitored, ${domeStadiums.length} indoor. ${weatherAlerts} weather advantage alerts detected.`;
+            }
+        }
+
+        function updateTableHeaders() {
+            const header = document.getElementById('table-header');
+            
+            if (currentView === 'team') {
+                header.innerHTML = `
+                    <tr>
+                        <th>Matchup</th>
+                        <th>Home Advantage</th>
+                        <th>Weather Narrative</th>
+                        <th>Advantage Score</th>
+                        <th>Conditions</th>
+                    </tr>
+                `;
+            } else if (currentView === 'position') {
+                header.innerHTML = `
+                    <tr>
+                        <th>Stadium</th>
+                        <th>Passing Impact</th>
+                        <th>Rushing Impact</th>
+                        <th>Kicking Impact</th>
+                        <th>Defense Impact</th>
+                    </tr>
+                `;
+            } else if (currentView === 'matchup') {
+                header.innerHTML = `
+                    <tr>
+                        <th>Alert Type</th>
+                        <th>Teams Affected</th>
+                        <th>Weather Factor</th>
+                        <th>Impact Level</th>
+                        <th>Details</th>
+                    </tr>
+                `;
+            } else {
+                header.innerHTML = `
+                    <tr>
+                        <th>Stadium</th>
+                        <th>Passing</th>
+                        <th>Rushing</th>
+                        <th>Kicking</th>
+                        <th>Weather</th>
+                    </tr>
+                `;
             }
         }
 
@@ -446,9 +497,22 @@
                 return;
             }
 
+            updateTableHeaders();
             const tbody = document.getElementById('stadiums-tbody');
             tbody.innerHTML = '';
 
+            if (currentView === 'team') {
+                renderTeamWeatherView(tbody);
+            } else if (currentView === 'position') {
+                renderPositionGroupView(tbody);
+            } else if (currentView === 'matchup') {
+                renderMatchupAlertView(tbody);
+            } else {
+                renderStandardView(tbody);
+            }
+        }
+
+        function renderStandardView(tbody) {
             stadiumFactorsData.stadium_factors.forEach((factor, index) => {
                 const teams = stadiumTeams[factor.stadium] || { home: "HOME", away: "AWAY" };
                 const gameTime = `1:${(index % 4) * 15 || '00'} PM`;
@@ -478,7 +542,6 @@
                         kickingDisplay = factor.base_kicking_factor.toFixed(2);
                     }
                 } else {
-                    // Weather impact only
                     const passingDiff = factor.passing_factor - factor.base_passing_factor;
                     const rushingDiff = factor.rushing_factor - factor.base_rushing_factor;
                     const kickingDiff = factor.kicking_factor - factor.base_kicking_factor;
@@ -488,7 +551,6 @@
                     kickingDisplay = formatDifference(kickingDiff);
                 }
 
-                // Weather display
                 let weatherDisplay = factor.weather;
                 if (factor.is_dome) {
                     weatherDisplay = `<span class="dome-indicator">DOME</span>`;
@@ -513,6 +575,160 @@
                     </td>
                     <td style="font-size: 0.8rem;">
                         ${weatherDisplay}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderTeamWeatherView(tbody) {
+            stadiumFactorsData.stadium_factors.forEach((factor) => {
+                if (factor.is_dome) return; // Skip domes for team weather view
+                
+                const teamAdvantage = factor.team_weather_advantage;
+                if (!teamAdvantage) return;
+                
+                const teams = stadiumTeams[factor.stadium] || { home: "HOME", away: "AWAY" };
+                const row = document.createElement('tr');
+                
+                const advantageClass = teamAdvantage.advantage_score > 108 ? 'factor-positive' : 
+                                     teamAdvantage.advantage_score < 96 ? 'factor-negative' : 'factor-neutral';
+                
+                row.innerHTML = `
+                    <td class="game-cell">
+                        <div class="stadium-name">${teams.away} @ ${teams.home}</div>
+                        <div class="game-details">${factor.stadium}</div>
+                        <div class="weather-info">${factor.home_team}</div>
+                    </td>
+                    <td class="${advantageClass}">
+                        ${(teamAdvantage.home_advantage * 100).toFixed(0)}%
+                    </td>
+                    <td style="font-size: 0.8rem; max-width: 200px;">
+                        ${teamAdvantage.weather_narrative}
+                    </td>
+                    <td class="${advantageClass}">
+                        ${teamAdvantage.advantage_score}
+                    </td>
+                    <td style="font-size: 0.8rem;">
+                        ${factor.weather}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderPositionGroupView(tbody) {
+            stadiumFactorsData.stadium_factors.forEach((factor) => {
+                const impacts = factor.position_impacts;
+                if (!impacts) return;
+                
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td class="game-cell">
+                        <div class="stadium-name">${factor.stadium}</div>
+                        <div class="game-details">${factor.home_team}</div>
+                        <div class="weather-info">${factor.weather}</div>
+                    </td>
+                    <td class="${getFactorClass(impacts.passing_offense)}">
+                        ${formatAsPercentage(impacts.passing_offense)}
+                    </td>
+                    <td class="${getFactorClass(impacts.rushing_offense)}">
+                        ${formatAsPercentage(impacts.rushing_offense)}
+                    </td>
+                    <td class="${getFactorClass(impacts.field_goal_unit)}">
+                        ${formatAsPercentage(impacts.field_goal_unit)}
+                    </td>
+                    <td class="${getFactorClass(impacts.defense)}">
+                        ${formatAsPercentage(impacts.defense)}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderMatchupAlertView(tbody) {
+            const alerts = [];
+            
+            stadiumFactorsData.stadium_factors.forEach((factor) => {
+                if (factor.is_dome) return;
+                
+                const teamAdvantage = factor.team_weather_advantage;
+                const weather = factor.weather_details;
+                
+                if (!teamAdvantage || !weather) return;
+                
+                // Generate alerts based on conditions
+                if (weather.temp < 40 && teamAdvantage.advantage_score > 110) {
+                    alerts.push({
+                        type: "COLD WEATHER ADVANTAGE",
+                        teams: `${factor.home_team} vs visiting team`,
+                        factor: `${weather.temp}°F`,
+                        impact: "HIGH",
+                        details: "Home team has significant cold weather advantage"
+                    });
+                }
+                
+                if (weather.wind > 20) {
+                    alerts.push({
+                        type: "HIGH WIND ALERT",
+                        teams: `All teams at ${factor.stadium}`,
+                        factor: `${weather.wind} mph winds`,
+                        impact: "HIGH",
+                        details: "Passing game and kicking severely impacted"
+                    });
+                }
+                
+                if (weather.precipitation && teamAdvantage.advantage_score > 105) {
+                    alerts.push({
+                        type: "PRECIPITATION ADVANTAGE",
+                        teams: `${factor.home_team} vs visiting team`,
+                        factor: "Rain/Snow conditions",
+                        impact: "MODERATE",
+                        details: "Home team better equipped for wet conditions"
+                    });
+                }
+                
+                if (teamAdvantage.advantage_score < 95) {
+                    alerts.push({
+                        type: "VISITING TEAM ADVANTAGE",
+                        teams: `Visiting team at ${factor.stadium}`,
+                        factor: teamAdvantage.weather_factors.join(", "),
+                        impact: "MODERATE",
+                        details: "Visiting team handles conditions better than home team"
+                    });
+                }
+            });
+            
+            if (alerts.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="5" style="text-align: center; padding: 40px; color: #666;">No significant weather advantages detected today</td>`;
+                tbody.appendChild(row);
+                return;
+            }
+            
+            alerts.forEach(alert => {
+                const row = document.createElement('tr');
+                const impactClass = alert.impact === 'HIGH' ? 'factor-negative' : 'factor-neutral';
+                
+                row.innerHTML = `
+                    <td class="game-cell">
+                        <div class="stadium-name">${alert.type}</div>
+                    </td>
+                    <td style="font-size: 0.9rem;">
+                        ${alert.teams}
+                    </td>
+                    <td style="font-size: 0.9rem;">
+                        ${alert.factor}
+                    </td>
+                    <td class="${impactClass}">
+                        ${alert.impact}
+                    </td>
+                    <td style="font-size: 0.8rem;">
+                        ${alert.details}
                     </td>
                 `;
                 
@@ -547,7 +763,9 @@
         function changeEffect(effect) {
             currentEffect = effect;
             updateActiveButtons('.effect-buttons button', effect);
-            renderTable();
+            if (currentView === 'percentage') {
+                renderTable(); // Re-render for standard view
+            }
             console.log('Effect changed to:', effect);
         }
 
