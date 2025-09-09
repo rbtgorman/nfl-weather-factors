@@ -241,12 +241,24 @@
                     var adv = fact.team_weather_advantage;
                     if(!adv) return;
                     var tmref = teamsRef[fact.stadium]||{h:"HOME",a:"AWAY"};
+                    var hr = '1:' + (idx % 4 * 15 || '00') + ' PM';
+
+                    let betterPassingTeam = fact.passing_factor > fact.base_passing_factor ? tmref.h : tmref.a;
+                    let betterRushingTeam = fact.rushing_factor > fact.base_rushing_factor ? tmref.h : tmref.a;
+
                     var cls = adv.advantage_score>108? 'factor-plus' : adv.advantage_score<96?'factor-minus':'factor-flat';
-                    tbC += '<tr><td class="gamecell">'+tmref.a+' @ '+tmref.h+'<br><span style="color:#4488dd;font-size:0.90rem;">'+fact.stadium+'</span></td>'
-                        +'<td class="'+cls+'">'+Math.round(adv.home_advantage*100)+'%</td>'
-                        +'<td style="font-size:0.89rem;">'+adv.weather_narrative+'</td>'
-                        +'<td class="'+cls+'">'+adv.advantage_score+'</td>'
-                        +'<td style="font-size:0.8rem;">'+fact.weather+'</td></tr>';
+                    tbC += '<tr class="' + addCls + '"><td class="gamecell"><div style="font-weight:bold;color:#234889">' + fact.stadium + '</div>'
+                        + '<div>' + tmref.a + ' @ ' + tmref.h + ' ' + hr + '</div>'
+                        + '<div style="font-size:0.81rem;color:#7ba5c9;">' + (fact.is_dome ? '' : fact.weather) + '</div></td>'
+                        + '<td class="' + getClass(currentEffect == 'all' ? fact.passing_factor : fact.base_passing_factor) + '">'
+                        + formatPct(currentEffect == 'all' ? fact.passing_factor : fact.base_passing_factor) 
+                        + '<br><small>Better: ' + betterPassingTeam + '</small></td>'
+                        + '<td class="' + getClass(currentEffect == 'all' ? fact.rushing_factor : fact.base_rushing_factor) + '">'
+                        + formatPct(currentEffect == 'all' ? fact.rushing_factor : fact.base_rushing_factor) 
+                        + '<br><small>Better: ' + betterRushingTeam + '</small></td>'
+                        + '<td class="' + getClass(currentEffect == 'all' ? fact.kicking_factor : fact.base_kicking_factor) + '">' + f3 + '</td>'
+                        + '<td style="font-size:0.80rem;">' + weatherCell + '</td></tr>';
+
                 });
             } else if(currentView=='pos') {
                 sf_data.stadium_factors.forEach(function(fact){
@@ -318,7 +330,7 @@
                         Math.abs(fact.passing_factor-fact.base_passing_factor)>0.01||
                         Math.abs(fact.rushing_factor-fact.base_rushing_factor)>0.01||
                         Math.abs(fact.kicking_factor-fact.base_kicking_factor)>0.01 ) ? 'fade-row':'';
-                    tbC += '<tr class="'+addCls+'"><td class="gamecell"><div style="font-weight:bold;color:#234889">'+fact.stadium+'</div>'
+                     tbC += '<tr class="'+addCls+'"><td class="gamecell"><div style="font-weight:bold;color:#234889">'+fact.stadium+'</div>'
                         +'<div>'+tmref.a+' @ '+tmref.h+' '+hr+'</div>'
                         +'<div style="font-size:0.81rem;color:#7ba5c9;">'+(fact.is_dome?'':fact.weather)+'</div></td>'
                         +'<td class="'+getClass(currentEffect=='all'?fact.passing_factor:fact.base_passing_factor)+'">'+f1+'</td>'
