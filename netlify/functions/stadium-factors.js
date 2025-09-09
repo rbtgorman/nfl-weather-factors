@@ -524,7 +524,30 @@ async function calculateStadiumFactors() {
     };
   });
   
-  stadiumFactors.sort((a, b) => b.passing_factor - a.passing_factor);
+  stadiumFactors.sort((a, b) => {
+    // First priority: Outdoor stadiums with weather impacts come first
+    if (a.is_dome && !b.is_dome) return 1;
+    if (!a.is_dome && b.is_dome) return -1;
+    
+    // Second priority: Among outdoor stadiums, sort by weather impact significance
+    if (!a.is_dome && !b.is_dome) {
+      // Calculate weather impact significance (how much weather is affecting the game)
+      const aWeatherImpact = Math.abs(a.passing_factor - a.base_passing_factor) + 
+                            Math.abs(a.rushing_factor - a.base_rushing_factor) + 
+                            Math.abs(a.kicking_factor - a.base_kicking_factor);
+      const bWeatherImpact = Math.abs(b.passing_factor - b.base_passing_factor) + 
+                            Math.abs(b.rushing_factor - b.base_rushing_factor) + 
+                            Math.abs(b.kicking_factor - b.base_kicking_factor);
+      
+      // Higher weather impact comes first
+      if (bWeatherImpact !== aWeatherImpact) {
+        return bWeatherImpact - aWeatherImpact;
+      }
+    }
+    
+    // Third priority: Sort by passing factor (original logic)
+    return b.passing_factor - a.passing_factor;
+  });
   
   console.log('Research-backed stadium factors calculation completed');
   

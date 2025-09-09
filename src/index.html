@@ -513,11 +513,40 @@
         }
 
         function renderStandardView(tbody) {
+            let outdoorGamesRendered = false;
+            let domeGamesRendered = false;
+
             stadiumFactorsData.stadium_factors.forEach((factor, index) => {
                 const teams = stadiumTeams[factor.stadium] || { home: "HOME", away: "AWAY" };
                 const gameTime = `1:${(index % 4) * 15 || '00'} PM`;
                 
+                // Add section header for dome games
+                if (!domeGamesRendered && factor.is_dome && outdoorGamesRendered) {
+                    const separatorRow = document.createElement('tr');
+                    separatorRow.innerHTML = `
+                        <td colspan="5" style="background: #e9ecef; padding: 10px; text-align: center; font-weight: 600; color: #6c757d; border-top: 2px solid #dee2e6;">
+                            Indoor Stadiums (No Weather Impact)
+                        </td>
+                    `;
+                    tbody.appendChild(separatorRow);
+                    domeGamesRendered = true;
+                } else if (!outdoorGamesRendered && !factor.is_dome) {
+                    outdoorGamesRendered = true;
+                }
+                
                 const row = document.createElement('tr');
+                
+                // Add weather impact indicator styling
+                if (!factor.is_dome) {
+                    const hasWeatherImpact = Math.abs(factor.passing_factor - factor.base_passing_factor) > 0.01 ||
+                                           Math.abs(factor.rushing_factor - factor.base_rushing_factor) > 0.01 ||
+                                           Math.abs(factor.kicking_factor - factor.base_kicking_factor) > 0.01;
+                    
+                    if (hasWeatherImpact) {
+                        row.style.borderLeft = "4px solid #ffc107"; // Yellow border for weather impact
+                        row.style.backgroundColor = "#fff9e6"; // Light yellow background
+                    }
+                }
                 
                 let passingDisplay, rushingDisplay, kickingDisplay;
                 
@@ -620,46 +649,35 @@
         }
 
         function renderPositionGroupView(tbody) {
-    stadiumFactorsData.stadium_factors.forEach((factor) => {
-        const impacts = factor.position_impacts;
-        console.log('Position impacts for', factor.stadium, ':', impacts); // Debug log
-        
-        if (!impacts) {
-            console.log('No position impacts for', factor.stadium);
-            return;
+            stadiumFactorsData.stadium_factors.forEach((factor) => {
+                const impacts = factor.position_impacts;
+                if (!impacts) return;
+                
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td class="game-cell">
+                        <div class="stadium-name">${factor.stadium}</div>
+                        <div class="game-details">${factor.home_team}</div>
+                        <div class="weather-info">${factor.weather}</div>
+                    </td>
+                    <td class="${getFactorClass(impacts.passing_offense)}">
+                        ${formatAsPercentage(impacts.passing_offense)}
+                    </td>
+                    <td class="${getFactorClass(impacts.rushing_offense)}">
+                        ${formatAsPercentage(impacts.rushing_offense)}
+                    </td>
+                    <td class="${getFactorClass(impacts.field_goal_unit)}">
+                        ${formatAsPercentage(impacts.field_goal_unit)}
+                    </td>
+                    <td class="${getFactorClass(impacts.defense)}">
+                        ${formatAsPercentage(impacts.defense)}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
         }
-        
-        const row = document.createElement('tr');
-        
-        row.innerHTML = `
-            <td class="game-cell">
-                <div class="stadium-name">${factor.stadium}</div>
-                <div class="game-details">${factor.home_team}</div>
-                <div class="weather-info">${factor.weather}</div>
-            </td>
-            <td class="${getFactorClass(impacts.passing_offense)}">
-                ${formatAsPercentage(impacts.passing_offense)}
-                <br><small style="color: #666;">Base: ${formatAsPercentage(factor.base_passing_factor)}</small>
-            </td>
-            <td class="${getFactorClass(impacts.rushing_offense)}">
-                ${formatAsPercentage(impacts.rushing_offense)}
-                <br><small style="color: #666;">Base: ${formatAsPercentage(factor.base_rushing_factor)}</small>
-            </td>
-            <td class="${getFactorClass(impacts.field_goal_unit)}">
-                ${formatAsPercentage(impacts.field_goal_unit)}
-                <br><small style="color: #666;">Base: ${formatAsPercentage(factor.base_kicking_factor)}</small>
-            </td>
-            <td class="${getFactorClass(impacts.defense)}">
-                ${formatAsPercentage(impacts.defense)}
-                <br><small style="color: #666;">Turnover: +${Math.round((impacts.turnover_rate - 1) * 100)}%</small>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-        
 
         function renderMatchupAlertView(tbody) {
             const alerts = [];
