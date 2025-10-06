@@ -104,6 +104,125 @@ function getWeatherData(lat, lon, targetDate) {
     });
   });
 }
+
+function fetchNFLSchedule(week, year) {
+  return new Promise((resolve, reject) => {
+    const url = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${year}&seasontype=2&week=${week}`;
+    
+    const timeout = setTimeout(() => {
+      console.error('ESPN API timeout');
+      resolve([]);
+    }, 5000);
+    
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        clearTimeout(timeout);
+        try {
+          const schedule = JSON.parse(data);
+          const games = parseESPNSchedule(schedule);
+          console.log(`Fetched ${games.length} games for week ${week}`);
+          resolve(games);
+        } catch (e) {
+          console.error('Error parsing ESPN schedule:', e.message);
+          resolve([]);
+        }
+      });
+    }).on('error', (err) => {
+      clearTimeout(timeout);
+      console.error('ESPN API error:', err.message);
+      resolve([]);
+    });
+  });
+}
+
+function parseESPNSchedule(schedule) {
+  if (!schedule.events) return [];
+  
+  const games = [];
+  
+  schedule.events.forEach(event => {
+    try {
+      const competition = event.competitions[0];
+      const homeTeam = competition.competitors.find(t => t.homeAway === 'home');
+      const awayTeam = competition.competitors.find(t => t.homeAway === 'away');
+      
+      const gameDate = new Date(event.date);
+      const gameTime = gameDate.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        timeZone: 'America/New_York'
+      });
+      
+      const stadium = mapTeamToStadium(homeTeam.team.displayName);
+      
+      if (stadium) {
+        games.push({
+          stadium: stadium,
+          home: homeTeam.team.displayName,
+          away: awayTeam.team.displayName,
+          time: gameTime,
+          date: gameDate.toISOString().split('T')[0],
+          status: competition.status.type.name
+        });
+      }
+    } catch (e) {
+      console.error('Error parsing game:', e.message);
+    }
+  });
+  
+  return games;
+}
+
+function mapTeamToStadium(teamName) {
+  const teamStadiumMap = {
+    "Green Bay Packers": "Lambeau Field",
+    "Chicago Bears": "Soldier Field",
+    "Cleveland Browns": "Cleveland Browns Stadium",
+    "Pittsburgh Steelers": "Heinz Field",
+    "Baltimore Ravens": "M&T Bank Stadium",
+    "New York Giants": "MetLife Stadium",
+    "New York Jets": "MetLife Stadium",
+    "New England Patriots": "Gillette Stadium",
+    "Miami Dolphins": "Hard Rock Stadium",
+    "Jacksonville Jaguars": "TIAA Bank Field",
+    "Denver Broncos": "Empower Field",
+    "Seattle Seahawks": "Lumen Field",
+    "San Francisco 49ers": "Levi's Stadium",
+    "Tampa Bay Buccaneers": "Raymond James Stadium",
+    "Kansas City Chiefs": "Arrowhead Stadium",
+    "Houston Texans": "NRG Stadium",
+    "Indianapolis Colts": "Lucas Oil Stadium",
+    "Las Vegas Raiders": "Allegiant Stadium",
+    "Los Angeles Rams": "SoFi Stadium",
+    "Los Angeles Chargers": "SoFi Stadium",
+    "Arizona Cardinals": "State Farm Stadium",
+    "Dallas Cowboys": "AT&T Stadium",
+    "Minnesota Vikings": "U.S. Bank Stadium",
+    "Detroit Lions": "Ford Field",
+    "New Orleans Saints": "Mercedes-Benz Superdome",
+    "Atlanta Falcons": "Mercedes-Benz Stadium",
+    "Buffalo Bills": "Highmark Stadium",
+    "Cincinnati Bengals": "Paycor Stadium",
+    "Tennessee Titans": "Nissan Stadium",
+    "Washington Commanders": "FedExField",
+    "Philadelphia Eagles": "Lincoln Financial Field",
+    "Carolina Panthers": "Bank of America Stadium"
+  };
+  
+  return teamStadiumMap[teamName] || null;
+}
+
+function getWeekFromDate(dateString) {
+  const targetDate = new Date(dateString);
+  const seasonStart = new Date('2024-09-05'); // Adjust for current season
+  const diffTime = Math.abs(targetDate - seasonStart);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const week = Math.ceil(diffDays / 7);
+  return Math.min(Math.max(week, 1), 18);
+}
+
 // Research-backed team weather profiles (2022-2024 data)
 const teamWeatherProfiles = {
   "Green Bay Packers": {
@@ -504,37 +623,80 @@ async function calculateStadiumFactors(requestedDate) {
     "U.S. Bank Stadium": {"lat": 44.9738, "lon": -93.2581, "base_passing": 1.03, "base_rushing": 0.97, "base_kicking": 1.05, "dome": true, "home_team": "Minnesota Vikings"},
     "Ford Field": {"lat": 42.3400, "lon": -83.0456, "base_passing": 1.02, "base_rushing": 0.98, "base_kicking": 1.04, "dome": true, "home_team": "Detroit Lions"},
     "Mercedes-Benz Superdome": {"lat": 29.9511, "lon": -90.0812, "base_passing": 1.03, "base_rushing": 0.97, "base_kicking": 1.05, "dome": true, "home_team": "New Orleans Saints"},
-    "Mercedes-Benz Stadium": {"lat": 33.7553, "lon": -84.4006, "base_passing": 1.03, "base_rushing": 0.97, "base_kicking": 1.05, "dome": true, "home_team": "Atlanta Falcons"}
+    "Mercedes-Benz Stadium": {"lat": 33.7553, "lon": -84.4006, "base_passing": 1.03, "base_rushing": 0.97, "base_kicking": 1.05, "dome": true, "home_team": "Atlanta Falcons"},
+    "Highmark Stadium": {"lat": 42.7738, "lon": -78.7870, "base_passing": 0.94, "base_rushing": 1.06, "base_kicking": 0.88, "dome": false, "home_team": "Buffalo Bills"},
+    "Paycor Stadium": {"lat": 39.0954, "lon": -84.5160, "base_passing": 0.98, "base_rushing": 1.01, "base_kicking": 0.96, "dome": false, "home_team": "Cincinnati Bengals"},
+    "Nissan Stadium": {"lat": 36.1665, "lon": -86.7713, "base_passing": 1.00, "base_rushing": 1.00, "base_kicking": 0.98, "dome": false, "home_team": "Tennessee Titans"},
+    "FedExField": {"lat": 38.9076, "lon": -76.8645, "base_passing": 0.99, "base_rushing": 1.01, "base_kicking": 0.97, "dome": false, "home_team": "Washington Commanders"},
+    "Lincoln Financial Field": {"lat": 39.9008, "lon": -75.1675, "base_passing": 0.98, "base_rushing": 1.02, "base_kicking": 0.95, "dome": false, "home_team": "Philadelphia Eagles"},
+    "Bank of America Stadium": {"lat": 35.2258, "lon": -80.8528, "base_passing": 1.01, "base_rushing": 0.99, "base_kicking": 1.00, "dome": false, "home_team": "Carolina Panthers"}
   };
   
-  console.log('Starting weather analysis with research-backed calculations...');
+  console.log('Calculating factors for date:', requestedDate);
   
-  const weatherPromises = Object.entries(nflStadiums).map(async ([stadiumName, data]) => {
+  // Calculate which week this date falls in
+  const week = getWeekFromDate(requestedDate);
+  const year = new Date(requestedDate).getFullYear();
+  
+  console.log(`Fetching schedule for week ${week}, year ${year}`);
+  
+  // Fetch live schedule from ESPN
+  const allWeekGames = await fetchNFLSchedule(week, year);
+  
+  // Filter games for the specific date requested
+  const scheduledGames = allWeekGames.filter(game => game.date === requestedDate);
+  
+  console.log(`Found ${scheduledGames.length} games on ${requestedDate}`);
+  
+  if (scheduledGames.length === 0) {
+    return {
+      last_updated: new Date().toISOString(),
+      stadium_factors: [],
+      requested_date: requestedDate,
+      requested_week: week,
+      message: `No NFL games scheduled for this date (Week ${week})`,
+      data_sources: [
+        "ESPN NFL API",
+        "NFL Weather Impact Research 2022-2024",
+        "OpenWeatherMap API"
+      ]
+    };
+  }
+  
+  // Only fetch weather for stadiums with games on this date
+  const weatherPromises = scheduledGames.map(async (game) => {
+    const stadiumName = game.stadium;
+    const data = nflStadiums[stadiumName];
+    
+    if (!data) {
+      console.error(`Stadium not found: ${stadiumName}`);
+      return null;
+    }
+    
     try {
       if (data.dome) {
-        return { stadiumName, data, weatherData: null, isDome: true };
+        return { stadiumName, data, weatherData: null, isDome: true, game: game };
       }
       
-      const weatherData = await getWeatherData(data.lat, data.lon);
-      return { stadiumName, data, weatherData, isDome: false };
+      const weatherData = await getWeatherData(data.lat, data.lon, requestedDate);
+      return { stadiumName, data, weatherData, isDome: false, game: game };
     } catch (error) {
       console.error(`Weather fetch failed for ${stadiumName}:`, error);
-      return { stadiumName, data, weatherData: null, isDome: data.dome };
+      return { stadiumName, data, weatherData: null, isDome: data.dome, game: game };
     }
   });
   
-  const weatherResults = await Promise.all(weatherPromises);
+  const weatherResults = (await Promise.all(weatherPromises)).filter(r => r !== null);
   console.log('Weather data processed with research-backed calculations');
   
-  const stadiumFactors = weatherResults.map(({ stadiumName, data, weatherData, isDome }) => {
+  const stadiumFactors = weatherResults.map(({ stadiumName, data, weatherData, isDome, game }) => {
     // Apply research-backed weather adjustments
     const adjustedPassingFactor = calculateWeatherAdjustedFactor(data.base_passing, weatherData, 'passing');
     const adjustedRushingFactor = calculateWeatherAdjustedFactor(data.base_rushing, weatherData, 'rushing');
     const adjustedKickingFactor = calculateWeatherAdjustedFactor(data.base_kicking, weatherData, 'kicking');
     
-    // Sample away team for advantage calculation
-    const sampleAwayTeam = isDome ? "Green Bay Packers" : "Miami Dolphins";
-    const teamAdvantage = calculateTeamWeatherAdvantage(data.home_team, sampleAwayTeam, weatherData, isDome);
+    // Use actual away team from schedule
+    const teamAdvantage = calculateTeamWeatherAdvantage(data.home_team, game.away, weatherData, isDome);
     const positionImpacts = calculatePositionGroupImpact(weatherData, isDome);
     
     let weatherSummary = isDome ? "Indoor (Dome)" : "Weather unavailable";
@@ -545,7 +707,10 @@ async function calculateStadiumFactors(requestedDate) {
     
     return {
       stadium: stadiumName,
-      home_team: data.home_team,
+      home_team: game.home,
+      away_team: game.away,
+      game_time: game.time,
+      game_status: game.status,
       passing_factor: adjustedPassingFactor,
       rushing_factor: adjustedRushingFactor,
       kicking_factor: adjustedKickingFactor,
@@ -567,7 +732,6 @@ async function calculateStadiumFactors(requestedDate) {
     
     // Second priority: Among outdoor stadiums, sort by weather impact significance
     if (!a.is_dome && !b.is_dome) {
-      // Calculate weather impact significance (how much weather is affecting the game)
       const aWeatherImpact = Math.abs(a.passing_factor - a.base_passing_factor) + 
                             Math.abs(a.rushing_factor - a.base_rushing_factor) + 
                             Math.abs(a.kicking_factor - a.base_kicking_factor);
@@ -575,7 +739,6 @@ async function calculateStadiumFactors(requestedDate) {
                             Math.abs(b.rushing_factor - b.base_rushing_factor) + 
                             Math.abs(b.kicking_factor - b.base_kicking_factor);
       
-      // Higher weather impact comes first
       if (bWeatherImpact !== aWeatherImpact) {
         return bWeatherImpact - aWeatherImpact;
       }
@@ -589,12 +752,13 @@ async function calculateStadiumFactors(requestedDate) {
   
   return {
     last_updated: new Date().toISOString(),
+    requested_date: requestedDate,
+    requested_week: week,
     stadium_factors: stadiumFactors,
     data_sources: [
+      "ESPN NFL API",
       "NFL Weather Impact Research 2022-2024",
-      "Field Goal Analysis by Wind/Temperature",
-      "QB Completion Rate Studies",
-      "Team Performance by Climate Type"
+      "OpenWeatherMap API"
     ]
   };
 }
