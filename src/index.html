@@ -167,6 +167,7 @@
     <script>
         var currentView = 'default', currentEffect = 'all';
         var sf_data = null;
+        var currentDate = new Date(); // ADD THIS LINE
         var teamsRef = {
             "Lambeau Field": { h: "GB", a: "CHI" }, "Soldier Field": { h: "CHI", a: "GB" },
             "Cleveland Browns Stadium": { h: "CLE", a: "PIT" }, "Heinz Field": { h: "PIT", a: "BAL" },
@@ -200,9 +201,15 @@
             else btns[2].classList.add('active');
             refreshTbl();
         }
-        function dateChange(i) {
-            // Date navigation logic here if implemented
-            alert('Date navigation not yet coded');
+        function dateChange(direction) {
+            currentDate.setDate(currentDate.getDate() + direction);
+            updateDateDisplay();
+            getData();
+        }
+        function updateDateDisplay() {
+            const options = { month: 'long', day: 'numeric', year: 'numeric' };
+            const dateString = currentDate.toLocaleDateString('en-US', options);
+            document.getElementById('dt-spot').innerText = dateString;
         }
         function formatPct(f) {
             var pct = Math.round((f-1)*100);
@@ -360,10 +367,9 @@
                 document.getElementById('last-changed').innerText = "Last updated: "+dat.toLocaleTimeString();
             }
         }
-
         function getData() {
-            // Simulate API call
-            fetch('/.netlify/functions/stadium-factors')
+            const dateParam = currentDate.toISOString().split('T')[0];
+            fetch('/.netlify/functions/stadium-factors?date=' + dateParam)
             .then(function(resp){
                 if(!resp.ok) throw Error("HTTP "+resp.status);
                 return resp.json();
@@ -375,8 +381,8 @@
                 document.getElementById('tbl-body').innerHTML='<tr><td colspan="5" class="error-txt">Error loading stadium data: '+e.message+'</td></tr>';
             });
         }
-
         document.addEventListener('DOMContentLoaded', function(){
+            updateDateDisplay(); // ADD THIS LINE
             getData();
             setInterval(getData, 30*60*1000);
         });
