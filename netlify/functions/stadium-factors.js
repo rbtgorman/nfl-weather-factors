@@ -2,7 +2,8 @@ const https = require('https');
 
 exports.handler = async (event, context) => {
   try {
-    const stadiumFactors = await calculateStadiumFactors();
+   const requestedDate = event.queryStringParameters?.date || new Date().toISOString().split('T')[0];
+   const stadiumFactors = await calculateStadiumFactors(requestedDate);
 
     return {
       statusCode: 200,
@@ -28,10 +29,10 @@ exports.handler = async (event, context) => {
   }
 };
 
-function getWeatherData(lat, lon) {
+function getWeatherData(lat, lon, targetDate) {
   return new Promise((resolve, reject) => {
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=3f9b48769c07fcf29078b4d62df8d84d&units=imperial`;
-    
+    const apiKey = process.env.OPENWEATHER_API_KEY;
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;    
     const timeout = setTimeout(() => {
       resolve(null);
     }, 3000);
@@ -443,7 +444,7 @@ function calculateWeatherAdjustedFactor(baseFactor, weatherData, factorType) {
   return Math.round(baseFactor * weatherAdjustment * 1000) / 1000;
 }
 
-async function calculateStadiumFactors() {
+async function calculateStadiumFactors(requestedDate) {
   const nflStadiums = {
     "Lambeau Field": {"lat": 44.5013, "lon": -88.0622, "base_passing": 0.95, "base_rushing": 1.05, "base_kicking": 0.90, "dome": false, "home_team": "Green Bay Packers"},
     "Soldier Field": {"lat": 41.8623, "lon": -87.6167, "base_passing": 0.96, "base_rushing": 1.03, "base_kicking": 0.92, "dome": false, "home_team": "Chicago Bears"},
