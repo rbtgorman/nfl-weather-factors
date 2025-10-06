@@ -32,21 +32,54 @@ exports.handler = async (event, context) => {
 function getWeatherData(lat, lon, targetDate) {
   return new Promise((resolve, reject) => {
     const apiKey = process.env.OPENWEATHER_API_KEY;
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;    
+    
+    // DEBUG: Log API key status
+    console.log('API Key exists:', !!apiKey);
+    console.log('API Key length:', apiKey ? apiKey.length : 0);
+    
+    if (!apiKey) {
+      console.error('ERROR: OPENWEATHER_API_KEY environment variable is not set!');
+      resolve(null);
+      return;
+    }
+    
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
+    console.log('Fetching weather for lat:', lat, 'lon:', lon);
+    
     const timeout = setTimeout(() => {
+      console.log('Weather API timeout after 3 seconds');
       resolve(null);
     }, 3000);
     
     https.get(url, (res) => {
+      console.log('Weather API response status:', res.statusCode);
+      
       let data = '';
       res.on('data', (chunk) => {
         data += chunk;
       });
       res.on('end', () => {
         clearTimeout(timeout);
+        
+        if (res.statusCode !== 200) {
+          console.error('Weather API error status:', res.statusCode);
+          console.error('Response body:', data);
+          resolve(null);
+          return;
+        }
+        
         try {
           const weather = JSON.parse(data);
+          
+          // Check if API returned an error
+          if (weather.cod && weather.cod !== 200) {
+            console.error('Weather API returned error:', weather.message);
+            resolve(null);
+            return;
+          }
+          
           const condition = weather.weather[0].main.toLowerCase();
+          console.log('Weather fetched successfully:', weather.main.temp + '°F');
           
           resolve({
             temp: Math.round(weather.main.temp),
@@ -59,16 +92,18 @@ function getWeatherData(lat, lon, targetDate) {
             visibility: weather.visibility || 10000
           });
         } catch (e) {
+          console.error('Error parsing weather data:', e.message);
+          console.error('Raw data:', data);
           resolve(null);
         }
       });
     }).on('error', (err) => {
       clearTimeout(timeout);
+      console.error('Weather API request error:', err.message);
       resolve(null);
     });
   });
 }
-
 // Research-backed team weather profiles (2022-2024 data)
 const teamWeatherProfiles = {
   "Green Bay Packers": {
